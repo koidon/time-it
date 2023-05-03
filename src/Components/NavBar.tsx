@@ -4,8 +4,8 @@ import { Button, HStack, Image } from "@chakra-ui/react";
 const NavBar = () => {
   const user = useUser();
   return (
-    <HStack p="10px" justify="space-between">
-      <Image src="/sogeti.webp" boxSize="60px" />
+    <HStack p="20px" justify="space-between">
+      <Image src="/sogetiLogo.svg" alt="Sogeti logo" />
       {!user.isSignedIn && (
         <SignInButton mode="modal">
           <Button m="8" ml="auto" colorScheme="teal">

@@ -1,8 +1,9 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
-import { Button, Flex, Grid, GridItem, Show } from "@chakra-ui/react";
+import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
+import SideBar from "~/Components/SideBar";
 
 const Home: NextPage = () => {
   return (
@@ -25,13 +26,7 @@ const Home: NextPage = () => {
         </GridItem>
         <Show above="lg">
           <GridItem area="aside">
-            <Flex flexDir="column" w="10%">
-              <Button variant="solid">Timesheet</Button>
-              <Button variant="solid">Dashboard</Button>
-              <Button variant="solid">Calendar</Button>
-              <Button variant="solid">Reports</Button>
-              <Button variant="solid">Absence</Button>
-            </Flex>
+            <SideBar />
           </GridItem>
         </Show>
       </main>
