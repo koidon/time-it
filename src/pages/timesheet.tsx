@@ -18,6 +18,8 @@ import {
 } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
+import { useUser } from "@clerk/nextjs";
+import { api, RouterOutputs } from "~/utils/api";
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -32,12 +34,45 @@ const getFirstDayOfWeek = (date: Date) => {
 
 const weekDayFormat = { weekday: "short", month: "short", day: "numeric" };
 
+interface Data {
+  project: string;
+  time_entries: object;
+}
+
+type projectData = Data[];
+
+interface TimeEntry {
+  [key: string]: number;
+}
+
 const Timesheet = () => {
+  const user = useUser();
+
+  const { data } = api.test.getAll.useQuery();
+
+  console.log(JSON.stringify(data));
+
+  type ProjectWithUser = RouterOutputs["test"]["getAll"][number];
+
+  const formattedData = data?.map(({ project }) => {
+    const { project: projectName, time_entries } = project;
+    const hoursPerDate = time_entries.reduce((acc, { hours_worked, date }) => {
+      const formattedDate = new Date(date).toLocaleDateString("en-SE");
+      acc[formattedDate] = (acc[formattedDate] || 0) + hours_worked;
+      return acc;
+    }, {} as TimeEntry);
+    return {
+      project,
+      time_entries: hoursPerDate,
+    };
+  });
+
+  console.log(formattedData);
+
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
-  const [data, setData] = useState([
-    { project: "Project 1", sheet: {} },
-    { project: "Project 2", sheet: {} },
+  const [timeData, setTimeData] = useState<projectData>([
+    { project: "Project 1", time_entries: {} },
   ]);
 
   const handlePreviousWeek = () => {
@@ -49,32 +84,33 @@ const Timesheet = () => {
   };
 
   const getValue = (index: number, date: Date) => {
-    const key = date.toLocaleDateString("en-US");
-    return data[index].sheet[key] ?? "";
+    const key = date.toLocaleDateString("en-SE");
+    return formattedData?.[index]?.time_entries?.[key] ?? "";
   };
 
   const setValue = (index: number, date: Date, value: string) => {
-    const key = date.toLocaleDateString("en-US");
-    setData((prevData) => {
+    const key = date.toLocaleDateString("en-SE");
+    setTimeData((prevData) => {
       const newData = [...prevData];
-      if (value === "") delete newData[index].sheet[key]; // remove key if empty
-      else newData[index].sheet[key] = value;
+      if (value === "")
+        delete newData[index].time_entries[key]; // remove key if empty
+      else newData[index].time_entries[key] = value;
       return newData;
     });
   };
 
   const handleAddRow = () => {
-    setData([
-      ...data,
+    setTimeData([
+      ...timeData,
       {
-        project: `Project ${data.length + 1}`,
-        sheet: {},
+        project: `Project ${timeData.length + 1}`,
+        time_entries: {},
       },
     ]);
   };
 
   const handleDeleteRow = (index: number) => {
-    setData((prevData) => {
+    setTimeData((prevData) => {
       const updatedData = [...prevData];
       updatedData.splice(index, 1);
       return updatedData;
@@ -117,65 +153,68 @@ const Timesheet = () => {
               <SideBar />
             </GridItem>
           </Show>
-          <GridItem area="main">
-            <Box paddingLeft={2}>
-              <Button onClick={handlePreviousWeek}>Previous Week</Button>
-              {` ${weekDates[0].toLocaleDateString(
-                "en-US"
-              )} - ${weekDates[6].toLocaleDateString("en-US")} `}
-              <Button onClick={handleNextWeek}>Next Week</Button>
-              <TableContainer>
-                <Table>
-                  <Thead>
-                    <Tr>
-                      <Th>Project</Th>
-                      {weekDates.map((day) => (
-                        <Th key={day}>
-                          {day.toLocaleDateString("en-US", weekDayFormat)}
-                        </Th>
-                      ))}
-                      <Th>Total</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {data.map((item, index) => (
-                      <Tr key={index}>
-                        <Td>{item.project}</Td>
-                        {weekDates.map((date) => (
-                          <Td key={date}>
-                            <Input
-                              size="sm"
-                              type="number"
-                              value={getValue(index, date)}
-                              onChange={(e) =>
-                                setValue(index, date, e.target.value)
-                              }
-                              disabled={isFutureStartDate}
-                            />
-                          </Td>
+          {!!user.isSignedIn && (
+            <GridItem area="main">
+              <Box paddingLeft={2}>
+                <Button onClick={handlePreviousWeek}>Previous Week</Button>
+                {` ${weekDates[0].toLocaleDateString(
+                  "en-SE"
+                )} - ${weekDates[6].toLocaleDateString("en-SE")} `}
+                <Button onClick={handleNextWeek}>Next Week</Button>
+                <TableContainer>
+                  <Table>
+                    <Thead>
+                      <Tr>
+                        <Th>Project</Th>
+                        {weekDates.map((day) => (
+                          <Th key={day}>
+                            {day.toLocaleDateString("en-SE", weekDayFormat)}
+                          </Th>
                         ))}
-                        <Td>{getTotal(index, weekDates)}</Td>
-                        <Td>
-                          <Button onClick={() => handleDeleteRow(index)}>
-                            Delete
-                          </Button>
-                        </Td>
+                        <Th>Total</Th>
                       </Tr>
-                    ))}
-                    <Tr>
-                      <Td></Td>
-                      {weekDates.map((day) => (
-                        <Th key={day}>
-                          {day.toLocaleDateString("en-US", weekDayFormat)}
-                        </Th>
+                    </Thead>
+                    <Tbody>
+                      {timeData.map((item, index) => (
+                        <Tr key={index}>
+                          <Td>{item.project}</Td>
+                          {weekDates.map((date) => (
+                            <Td key={date}>
+                              <Input
+                                size="sm"
+                                type="number"
+                                value={getValue(index, date)}
+                                onChange={(e) =>
+                                  setValue(index, date, e.target.value)
+                                }
+                                disabled={isFutureStartDate}
+                              />
+                            </Td>
+                          ))}
+                          <Td>{getTotal(index, weekDates)}</Td>
+                          <Td>
+                            <Button onClick={() => handleDeleteRow(index)}>
+                              Delete
+                            </Button>
+                          </Td>
+                        </Tr>
                       ))}
-                    </Tr>
-                  </Tbody>
-                </Table>
-              </TableContainer>
-              <button onClick={handleAddRow}>Add New Project</button>
-            </Box>
-          </GridItem>
+                      <Tr>
+                        <Td></Td>
+                        {weekDates.map((day) => (
+                          <Th key={day}>
+                            {day.toLocaleDateString("en-SE", weekDayFormat)}
+                          </Th>
+                        ))}
+                      </Tr>
+                    </Tbody>
+                  </Table>
+                </TableContainer>
+                <button onClick={handleAddRow}>Add New Project</button>
+              </Box>
+            </GridItem>
+          )}
+          {!user.isSignedIn && <h1>You must sign in</h1>}
         </Grid>
       </main>
     </>

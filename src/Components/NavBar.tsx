@@ -14,11 +14,14 @@ const NavBar = () => {
         </SignInButton>
       )}
       {!!user.isSignedIn && (
-        <SignOutButton>
-          <Button m="8" ml="auto" colorScheme="teal">
-            Sign Out
-          </Button>
-        </SignOutButton>
+        <>
+          <p>{user.user.id}</p>
+          <SignOutButton>
+            <Button m="8" ml="auto" colorScheme="teal">
+              Sign Out
+            </Button>
+          </SignOutButton>
+        </>
       )}
     </HStack>
   );
