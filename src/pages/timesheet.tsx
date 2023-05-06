@@ -57,6 +57,12 @@ const Timesheet = () => {
     },
   });
 
+  const deleteProject = api.timesheet.projectDelete.useMutation({
+    onSuccess: () => {
+      void refetchData();
+    },
+  });
+
   const createTimeEntry = api.timeEntries.timeEntryCreate.useMutation({
     onSuccess: () => {
       void refetchData();
@@ -81,7 +87,7 @@ const Timesheet = () => {
     };
   });
 
-  console.log(formattedData);
+  console.log(projectData);
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));
@@ -121,13 +127,11 @@ const Timesheet = () => {
     });
   };
 
-  /* const handleDeleteRow = (index: number) => {
-    setTimeData((prevData) => {
-      const updatedData = [...prevData];
-      updatedData.splice(index, 1);
-      return updatedData;
+  const handleDeleteRow = (index: number) => {
+    deleteProject.mutate({
+      id: projectData?.[index]?.id ?? "",
     });
-  };*/
+  };
 
   const getTotal = (index: number, dates: Date[]) => {
     return dates.reduce((total, date) => {
@@ -211,9 +215,9 @@ const Timesheet = () => {
                           ))}
                           <Td>{getTotal(index, weekDates)}</Td>
                           <Td>
-                            {/* <Button onClick={() => handleDeleteRow(index)}>
+                            <Button onClick={() => handleDeleteRow(index)}>
                               Delete
-                            </Button>*/}
+                            </Button>
                           </Td>
                         </Tr>
                       ))}

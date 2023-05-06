@@ -24,4 +24,14 @@ export const timesheetRouter = createTRPCRouter({
         },
       });
     }),
+
+  projectDelete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.project.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
 });
