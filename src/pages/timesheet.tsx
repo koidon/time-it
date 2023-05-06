@@ -63,6 +63,12 @@ const Timesheet = () => {
     },
   });
 
+  const deleteTimeEntry = api.timeEntries.timeEntryDelete.useMutation({
+    onSuccess: () => {
+      void refetchData();
+    },
+  });
+
   const formattedData = projectData?.map(({ project, time_entries }) => {
     const hoursPerDate = time_entries.reduce((acc, { hours_worked, date }) => {
       const formattedDate = new Date(date).toLocaleDateString("en-SE");
@@ -74,6 +80,8 @@ const Timesheet = () => {
       time_entries: hoursPerDate,
     };
   });
+
+  console.log(formattedData);
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));
@@ -90,11 +98,19 @@ const Timesheet = () => {
 
   const setValue = (index: number, date: Date, value: string) => {
     const key = date.toLocaleDateString("en-SE");
-    createTimeEntry.mutate({
-      hours_worked: parseInt(value),
-      date: key,
-      projectId: projectData?.[index]?.id ?? "",
-    });
+
+    if (value == "") {
+      deleteTimeEntry.mutate({
+        date: key,
+        projectId: projectData?.[index]?.id ?? "",
+      });
+    } else {
+      createTimeEntry.mutate({
+        hours_worked: parseInt(value),
+        date: key,
+        projectId: projectData?.[index]?.id ?? "",
+      });
+    }
   };
 
   const handleAddRow = () => {

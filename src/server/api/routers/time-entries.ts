@@ -19,4 +19,20 @@ export const timeEntriesRouter = createTRPCRouter({
         },
       });
     }),
+
+  timeEntryDelete: protectedProcedure
+    .input(
+      z.object({
+        date: z.string(),
+        projectId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.time_entry.deleteMany({
+        where: {
+          date: input.date,
+          projectId: input.projectId,
+        },
+      });
+    }),
 });
