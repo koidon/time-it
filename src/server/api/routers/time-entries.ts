@@ -1,25 +1,22 @@
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { User } from "@clerk/backend";
-import { clerkClient } from "@clerk/nextjs/api";
+import { z } from "zod";
 
-const filterUserForClient = (user: User) => {
-  return {
-    id: user.id,
-    username: user.username,
-  };
-};
-
-export const timesRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
-    const times = await ctx.prisma.time_entries.findMany({
-      take: 100,
-    });
-
-    const users = (
-      await clerkClient.users.getUserList({
-        userId: times.map((time) => time.userId),
-        limit: 100,
+export const timeEntriesRouter = createTRPCRouter({
+  timeEntryCreate: protectedProcedure
+    .input(
+      z.object({
+        hours_worked: z.number(),
+        date: z.string(),
+        projectId: z.string(),
       })
-    ).map(filterUserForClient);
-  }),
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.time_entry.create({
+        data: {
+          hours_worked: input.hours_worked,
+          date: input.date,
+          projectId: input.projectId,
+        },
+      });
+    }),
 });

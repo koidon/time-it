@@ -23,25 +23,26 @@ const NavItem = ({ navSize, title, icon, route, alt }: Props) => {
       alignItems={navSize == "small" ? "center" : "flex-start"}
     >
       <Menu placement="right">
-        <NextLink href={route} passHref>
-          <Link
-            bg={currentRoute === route ? "gray.300" : ""}
-            p={3}
-            pb={1}
-            borderRadius={8}
-            _hover={{ textDecor: "none", backgroundColor: "gray.300" }}
-            w={navSize == "large" ? "100%" : ""}
-          >
-            <MenuButton>
-              <Flex>
-                <Image src={icon} alt={alt} />
-                <Text ml={5} display={navSize == "small" ? "none" : "flex"}>
-                  {title}
-                </Text>
-              </Flex>
-            </MenuButton>
-          </Link>
-        </NextLink>
+        <Link
+          as={NextLink}
+          href={route}
+          passHref
+          bg={currentRoute === route ? "gray.300" : ""}
+          p={3}
+          pb={1}
+          borderRadius={8}
+          _hover={{ textDecor: "none", backgroundColor: "gray.300" }}
+          w={navSize == "large" ? "100%" : ""}
+        >
+          <MenuButton>
+            <Flex>
+              <Image src={icon} alt={alt} />
+              <Text ml={5} display={navSize == "small" ? "none" : "flex"}>
+                {title}
+              </Text>
+            </Flex>
+          </MenuButton>
+        </Link>
       </Menu>
     </Flex>
   );

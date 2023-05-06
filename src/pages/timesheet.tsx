@@ -19,7 +19,7 @@ import {
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import { useUser } from "@clerk/nextjs";
-import { api, RouterOutputs } from "~/utils/api";
+import { api } from "~/utils/api";
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -32,14 +32,11 @@ const getFirstDayOfWeek = (date: Date) => {
   return dateOffset(date, -day);
 };
 
-const weekDayFormat = { weekday: "short", month: "short", day: "numeric" };
-
-interface Data {
-  project: string;
-  time_entries: object;
-}
-
-type projectData = Data[];
+const weekDayFormat: Intl.DateTimeFormatOptions = {
+  weekday: "short",
+  month: "long",
+  day: "numeric",
+};
 
 interface TimeEntry {
   [key: string]: number;
@@ -48,14 +45,25 @@ interface TimeEntry {
 const Timesheet = () => {
   const user = useUser();
 
-  const { data } = api.test.getAll.useQuery();
+  const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
+  const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
 
-  console.log(JSON.stringify(data));
+  const { data: projectData, refetch: refetchData } =
+    api.timesheet.getAll.useQuery();
 
-  type ProjectWithUser = RouterOutputs["test"]["getAll"][number];
+  const createProject = api.timesheet.projectCreate.useMutation({
+    onSuccess: () => {
+      void refetchData();
+    },
+  });
 
-  const formattedData = data?.map(({ project }) => {
-    const { project: projectName, time_entries } = project;
+  const createTimeEntry = api.timeEntries.timeEntryCreate.useMutation({
+    onSuccess: () => {
+      void refetchData();
+    },
+  });
+
+  const formattedData = projectData?.map(({ project, time_entries }) => {
     const hoursPerDate = time_entries.reduce((acc, { hours_worked, date }) => {
       const formattedDate = new Date(date).toLocaleDateString("en-SE");
       acc[formattedDate] = (acc[formattedDate] || 0) + hours_worked;
@@ -66,14 +74,6 @@ const Timesheet = () => {
       time_entries: hoursPerDate,
     };
   });
-
-  console.log(formattedData);
-
-  const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
-  const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
-  const [timeData, setTimeData] = useState<projectData>([
-    { project: "Project 1", time_entries: {} },
-  ]);
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));
@@ -90,36 +90,32 @@ const Timesheet = () => {
 
   const setValue = (index: number, date: Date, value: string) => {
     const key = date.toLocaleDateString("en-SE");
-    setTimeData((prevData) => {
-      const newData = [...prevData];
-      if (value === "")
-        delete newData[index].time_entries[key]; // remove key if empty
-      else newData[index].time_entries[key] = value;
-      return newData;
+    createTimeEntry.mutate({
+      hours_worked: parseInt(value),
+      date: key,
+      projectId: projectData?.[index]?.id ?? "",
     });
   };
 
   const handleAddRow = () => {
-    setTimeData([
-      ...timeData,
-      {
-        project: `Project ${timeData.length + 1}`,
-        time_entries: {},
-      },
-    ]);
+    createProject.mutate({
+      project: `Project ${
+        formattedData?.length ? formattedData.length + 1 : ""
+      }`,
+    });
   };
 
-  const handleDeleteRow = (index: number) => {
+  /* const handleDeleteRow = (index: number) => {
     setTimeData((prevData) => {
       const updatedData = [...prevData];
       updatedData.splice(index, 1);
       return updatedData;
     });
-  };
+  };*/
 
-  const getTotal = (index: number, dates: []) => {
+  const getTotal = (index: number, dates: Date[]) => {
     return dates.reduce((total, date) => {
-      const val = 1 * getValue(index, date);
+      const val = parseInt(getValue(index, date).toString()) || 0;
       return total + val;
     }, 0);
   };
@@ -157,9 +153,15 @@ const Timesheet = () => {
             <GridItem area="main">
               <Box paddingLeft={2}>
                 <Button onClick={handlePreviousWeek}>Previous Week</Button>
-                {` ${weekDates[0].toLocaleDateString(
-                  "en-SE"
-                )} - ${weekDates[6].toLocaleDateString("en-SE")} `}
+                {` ${
+                  weekDates[0]?.toLocaleDateString("en-SE")
+                    ? weekDates[0]?.toLocaleDateString("en-SE")
+                    : ""
+                } - ${
+                  weekDates[6]?.toLocaleDateString("en-SE")
+                    ? weekDates[6]?.toLocaleDateString("en-SE")
+                    : ""
+                } `}
                 <Button onClick={handleNextWeek}>Next Week</Button>
                 <TableContainer>
                   <Table>
@@ -167,7 +169,7 @@ const Timesheet = () => {
                       <Tr>
                         <Th>Project</Th>
                         {weekDates.map((day) => (
-                          <Th key={day}>
+                          <Th key={day.toISOString()}>
                             {day.toLocaleDateString("en-SE", weekDayFormat)}
                           </Th>
                         ))}
@@ -175,11 +177,11 @@ const Timesheet = () => {
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {timeData.map((item, index) => (
+                      {formattedData?.map((item, index) => (
                         <Tr key={index}>
                           <Td>{item.project}</Td>
                           {weekDates.map((date) => (
-                            <Td key={date}>
+                            <Td key={date.toISOString()}>
                               <Input
                                 size="sm"
                                 type="number"
@@ -193,16 +195,16 @@ const Timesheet = () => {
                           ))}
                           <Td>{getTotal(index, weekDates)}</Td>
                           <Td>
-                            <Button onClick={() => handleDeleteRow(index)}>
+                            {/* <Button onClick={() => handleDeleteRow(index)}>
                               Delete
-                            </Button>
+                            </Button>*/}
                           </Td>
                         </Tr>
                       ))}
                       <Tr>
                         <Td></Td>
                         {weekDates.map((day) => (
-                          <Th key={day}>
+                          <Th key={day.toISOString()}>
                             {day.toLocaleDateString("en-SE", weekDayFormat)}
                           </Th>
                         ))}
@@ -210,7 +212,7 @@ const Timesheet = () => {
                     </Tbody>
                   </Table>
                 </TableContainer>
-                <button onClick={handleAddRow}>Add New Project</button>
+                <Button onClick={handleAddRow}>Add New Project</Button>
               </Box>
             </GridItem>
           )}

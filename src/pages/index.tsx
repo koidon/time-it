@@ -4,7 +4,6 @@ import Head from "next/head";
 import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
-import { useUser } from "@clerk/nextjs";
 
 const Home: NextPage = () => {
   return (

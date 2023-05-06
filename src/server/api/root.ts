@@ -1,6 +1,6 @@
 import { createTRPCRouter } from "~/server/api/trpc";
-import { timesRouter } from "./routers/time-entries";
-import { testRouter } from "~/server/api/routers/test";
+import { timeEntriesRouter } from "./routers/time-entries";
+import { timesheetRouter } from "~/server/api/routers/timesheets";
 
 /**
  * This is the primary router for your server.
@@ -8,8 +8,8 @@ import { testRouter } from "~/server/api/routers/test";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  times: timesRouter,
-  test: testRouter,
+  timeEntries: timeEntriesRouter,
+  timesheet: timesheetRouter,
 });
 
 // export type definition of API
