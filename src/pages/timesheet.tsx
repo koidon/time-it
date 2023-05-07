@@ -52,8 +52,6 @@ const Timesheet = () => {
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
 
-  console.log(user.user);
-
   const { data: projectData, refetch: refetchData } =
     api.timesheet.getAll.useQuery();
 
@@ -98,8 +96,6 @@ const Timesheet = () => {
       time_entries: timeEntriesObj,
     };
   });
-
-  console.log(formattedData);
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));

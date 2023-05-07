@@ -1,6 +1,7 @@
 import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
-import { Button, HStack } from "@chakra-ui/react";
+import { Button, Center, Flex, HStack } from "@chakra-ui/react";
 import Image from "next/image";
+import UserMenu from "~/Components/UserMenu";
 
 const NavBar = () => {
   const user = useUser();
@@ -14,6 +15,7 @@ const NavBar = () => {
         priority={true}
         style={{ width: 94, height: 48 }}
       />
+
       {!user.isSignedIn && (
         <SignInButton mode="modal">
           <Button m="8" ml="auto" colorScheme="teal">
@@ -22,14 +24,16 @@ const NavBar = () => {
         </SignInButton>
       )}
       {!!user.isSignedIn && (
-        <>
-          <p>{user.user.id}</p>
-          <SignOutButton>
-            <Button m="8" ml="auto" colorScheme="teal">
-              Sign Out
-            </Button>
-          </SignOutButton>
-        </>
+        <Flex>
+          <Center m={4}>
+            <UserMenu
+              userProfilePicture={user.user.profileImageUrl}
+              username={
+                user.user.username ? user.user.username : user.user.fullName
+              }
+            />
+          </Center>
+        </Flex>
       )}
     </HStack>
   );
