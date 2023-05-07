@@ -1,6 +1,7 @@
 import React from "react";
-import { Flex, Image, Link, Menu, MenuButton, Text } from "@chakra-ui/react";
+import { Flex, Link, Menu, MenuButton, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 
 interface Props {
@@ -36,7 +37,13 @@ const NavItem = ({ navSize, title, icon, route, alt }: Props) => {
         >
           <MenuButton>
             <Flex>
-              <Image src={icon} alt={alt} />
+              <Image
+                src={icon}
+                alt={alt}
+                width={23}
+                height={23}
+                style={{ width: 23, height: 23 }}
+              />
               <Text ml={5} display={navSize == "small" ? "none" : "flex"}>
                 {title}
               </Text>

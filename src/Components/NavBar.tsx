@@ -1,11 +1,19 @@
 import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
-import { Button, HStack, Image } from "@chakra-ui/react";
+import { Button, HStack } from "@chakra-ui/react";
+import Image from "next/image";
 
 const NavBar = () => {
   const user = useUser();
   return (
     <HStack p="20px" justify="space-between">
-      <Image src="/sogetiLogo.svg" alt="Sogeti logo" />
+      <Image
+        src="/sogetiLogo.png"
+        alt="Sogeti logo"
+        width={94}
+        height={48}
+        priority={true}
+        style={{ width: 94, height: 48 }}
+      />
       {!user.isSignedIn && (
         <SignInButton mode="modal">
           <Button m="8" ml="auto" colorScheme="teal">

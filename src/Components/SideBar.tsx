@@ -37,35 +37,35 @@ const SideBar = () => {
         />
         <NavItem
           navSize={navSize}
-          icon="dashboardIcon.svg"
+          icon="/dashboardIcon.png"
           title="Dashboard"
           route="/"
           alt="Dashboard icon"
         />
         <NavItem
           navSize={navSize}
-          icon="timesheetIcon.svg"
+          icon="/timesheetIcon.png"
           title="Timesheet"
           route="/timesheet"
           alt="Timesheet icon"
         />
         <NavItem
           navSize={navSize}
-          icon="calendarIcon.svg"
+          icon="/calendarIcon.png"
           title="Calendar"
           route="/calendar"
           alt="Calendar icon"
         />
         <NavItem
           navSize={navSize}
-          icon="reportsIcon.svg"
+          icon="/reportsIcon.png"
           title="Reports"
           route="/reports"
           alt="Reports icon"
         />
         <NavItem
           navSize={navSize}
-          icon="absenceIcon.svg"
+          icon="/absenceIcon.png"
           title="Absence"
           route="/absence"
           alt="Absence icon"

@@ -52,6 +52,8 @@ const Timesheet = () => {
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
 
+  console.log(user.user);
+
   const { data: projectData, refetch: refetchData } =
     api.timesheet.getAll.useQuery();
 
