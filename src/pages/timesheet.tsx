@@ -20,6 +20,8 @@ import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import { useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
+import { toast } from "react-hot-toast";
+import { round } from "~/utils/round-number";
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -39,12 +41,14 @@ const weekDayFormat: Intl.DateTimeFormatOptions = {
 };
 
 interface TimeEntry {
-  [key: string]: number;
+  [key: string]: {
+    hours_worked: number;
+    id: string;
+  };
 }
 
 const Timesheet = () => {
   const user = useUser();
-
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
 
@@ -67,6 +71,9 @@ const Timesheet = () => {
     onSuccess: () => {
       void refetchData();
     },
+    onError: () => {
+      toast.error("Time entry can't be bigger then 24 or less then 0.");
+    },
   });
 
   const deleteTimeEntry = api.timeEntries.timeEntryDelete.useMutation({
@@ -76,18 +83,21 @@ const Timesheet = () => {
   });
 
   const formattedData = projectData?.map(({ project, time_entries }) => {
-    const hoursPerDate = time_entries.reduce((acc, { hours_worked, date }) => {
-      const formattedDate = new Date(date).toLocaleDateString("en-SE");
-      acc[formattedDate] = (acc[formattedDate] || 0) + hours_worked;
-      return acc;
-    }, {} as TimeEntry);
+    const timeEntriesObj = time_entries.reduce(
+      (acc, { id, hours_worked, date }) => {
+        const formattedDate = new Date(date).toLocaleDateString("en-SE");
+        acc[formattedDate] = { hours_worked, id };
+        return acc;
+      },
+      {} as TimeEntry
+    );
     return {
       project,
-      time_entries: hoursPerDate,
+      time_entries: timeEntriesObj,
     };
   });
 
-  console.log(projectData);
+  console.log(formattedData);
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));
@@ -99,24 +109,21 @@ const Timesheet = () => {
 
   const getValue = (index: number, date: Date) => {
     const key = date.toLocaleDateString("en-SE");
-    return formattedData?.[index]?.time_entries?.[key] ?? "";
+    return formattedData?.[index]?.time_entries?.[key]?.hours_worked ?? "";
   };
 
   const setValue = (index: number, date: Date, value: string) => {
     const key = date.toLocaleDateString("en-SE");
-
-    if (value == "") {
-      deleteTimeEntry.mutate({
-        date: key,
-        projectId: projectData?.[index]?.id ?? "",
-      });
-    } else {
-      createTimeEntry.mutate({
-        hours_worked: parseInt(value),
-        date: key,
-        projectId: projectData?.[index]?.id ?? "",
-      });
-    }
+    value === ""
+      ? deleteTimeEntry.mutate({
+          id: formattedData?.[index]?.time_entries?.[key]?.id ?? "",
+        })
+      : createTimeEntry.mutate({
+          hours_worked: round(parseFloat(value), 0.5),
+          date: key,
+          projectId: projectData?.[index]?.id ?? "",
+          id: formattedData?.[index]?.time_entries?.[key]?.id ?? "",
+        });
   };
 
   const handleAddRow = () => {
@@ -135,7 +142,7 @@ const Timesheet = () => {
 
   const getTotal = (index: number, dates: Date[]) => {
     return dates.reduce((total, date) => {
-      const val = parseInt(getValue(index, date).toString()) || 0;
+      const val = parseFloat(getValue(index, date).toString()) || 0;
       return total + val;
     }, 0);
   };
@@ -205,8 +212,8 @@ const Timesheet = () => {
                               <Input
                                 size="sm"
                                 type="number"
-                                value={getValue(index, date)}
-                                onChange={(e) =>
+                                defaultValue={getValue(index, date)}
+                                onBlur={(e) =>
                                   setValue(index, date, e.target.value)
                                 }
                                 disabled={isFutureStartDate}
