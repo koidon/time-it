@@ -2,13 +2,14 @@ import { SignInButton, useUser } from "@clerk/nextjs";
 import { Button, Center, Flex, HStack } from "@chakra-ui/react";
 import Image from "next/image";
 import UserMenu from "~/Components/UserMenu";
+import sogetiLogo from "/public/sogetiLogo.png";
 
 const NavBar = () => {
   const user = useUser();
   return (
     <HStack p="20px" justify="space-between">
       <Image
-        src="/sogetiLogo.png"
+        src={sogetiLogo}
         alt="Sogeti logo"
         width={94}
         height={48}

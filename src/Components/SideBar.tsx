@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { Flex, IconButton } from "@chakra-ui/react";
 import { FiMenu } from "react-icons/fi";
 import NavItem from "~/Components/NavItem";
+import absenceIcon from "/public/absenceIcon.png";
+import calendarIcon from "/public/absenceIcon.png";
+import dashboardIcon from "/public/dashboardIcon.png";
+import reportsIcon from "/public/reportsIcon.png";
+import timesheetIcon from "/public/timesheetIcon.png";
 
 const SideBar = () => {
   const [navSize, setNavSize] = useState("large");
@@ -37,35 +42,35 @@ const SideBar = () => {
         />
         <NavItem
           navSize={navSize}
-          icon="/dashboardIcon.png"
+          icon={dashboardIcon}
           title="Dashboard"
           route="/"
           alt="Dashboard icon"
         />
         <NavItem
           navSize={navSize}
-          icon="/timesheetIcon.png"
+          icon={timesheetIcon}
           title="Timesheet"
           route="/timesheet"
           alt="Timesheet icon"
         />
         <NavItem
           navSize={navSize}
-          icon="/calendarIcon.png"
+          icon={calendarIcon}
           title="Calendar"
           route="/calendar"
           alt="Calendar icon"
         />
         <NavItem
           navSize={navSize}
-          icon="/reportsIcon.png"
+          icon={reportsIcon}
           title="Reports"
           route="/reports"
           alt="Reports icon"
         />
         <NavItem
           navSize={navSize}
-          icon="/absenceIcon.png"
+          icon={absenceIcon}
           title="Absence"
           route="/absence"
           alt="Absence icon"

@@ -1,13 +1,13 @@
 import React from "react";
 import { Flex, Link, Menu, MenuButton, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import { useRouter } from "next/router";
 
 interface Props {
   navSize: string;
   title: string;
-  icon: string;
+  icon: StaticImageData;
   route: string;
   alt: string;
 }
