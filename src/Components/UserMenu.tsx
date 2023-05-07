@@ -1,6 +1,5 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import {
-  IconButton,
   Menu,
   MenuButton,
   MenuList,
@@ -13,6 +12,7 @@ import {
 import Image from "next/image";
 import ColorModeSwitch from "~/Components/ColorModeSwitch";
 import { SignOutButton, useUser } from "@clerk/nextjs";
+import NextLink from "next/link";
 
 interface PublicMetadata {
   [key: string]: boolean;
@@ -30,8 +30,6 @@ interface Props {
 
 const UserMenu = ({ userProfilePicture, username }: Props) => {
   const { user } = useUser() as { user?: User };
-
-  console.log(user);
 
   return (
     <Menu closeOnSelect={false}>
@@ -59,8 +57,13 @@ const UserMenu = ({ userProfilePicture, username }: Props) => {
           <ColorModeSwitch />
         </MenuItem>
         <MenuItem>Settings</MenuItem>
-        {user?.publicMetadata?.["isAdmin"] && <MenuItem>Test</MenuItem>}
-        <MenuItem>Settings</MenuItem>
+        {user?.publicMetadata?.["isAdmin"] && (
+          <MenuItem>
+            <Link as={NextLink} href="/roles" passHref>
+              Assign roles
+            </Link>
+          </MenuItem>
+        )}
         <MenuItem>
           <SignOutButton>
             <Link variant="link">Sign Out</Link>

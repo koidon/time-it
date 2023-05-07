@@ -4,6 +4,7 @@ import Head from "next/head";
 import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
+import UsersList from "~/Components/UsersList";
 
 const Home: NextPage = () => {
   return (
@@ -29,6 +30,9 @@ const Home: NextPage = () => {
               <SideBar />
             </GridItem>
           </Show>
+          <GridItem area="main">
+            <UsersList />
+          </GridItem>
         </Grid>
       </main>
     </>

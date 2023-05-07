@@ -1,4 +1,4 @@
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { Button, Center, Flex, HStack } from "@chakra-ui/react";
 import Image from "next/image";
 import UserMenu from "~/Components/UserMenu";
