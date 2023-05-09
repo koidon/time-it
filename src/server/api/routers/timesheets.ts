@@ -28,7 +28,7 @@ export const timesheetRouter = createTRPCRouter({
   projectDelete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {
-      return ctx.prisma.project.delete({
+      return ctx.prisma.project.deleteMany({
         where: {
           id: input.id,
         },

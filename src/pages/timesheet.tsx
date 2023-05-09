@@ -114,7 +114,8 @@ const Timesheet = () => {
     const key = date.toLocaleDateString("en-SE");
     value === ""
       ? deleteTimeEntry.mutate({
-          id: formattedData?.[index]?.time_entries?.[key]?.id ?? "",
+          date: key,
+          projectId: projectData?.[index]?.id ?? "",
         })
       : createTimeEntry.mutate({
           hours_worked: round(parseFloat(value), 0.5),
