@@ -10,27 +10,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Time_entry {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  hours_worked Float
-  date         String
-  projectId    String
-  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, date])
+model Employee {
+  id       String    @id @default(cuid())
+  userId   String    @unique
+  projects Project[]
 }
 
 model Project {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  project   String
+  id          String     @id @default(cuid())
+  projectName String
+  creator     String
+  employees   Employee[]
+}
 
-  userId String
+model TimeSheet {
+  id          String @id @default(cuid())
+  userId      String
+  currentWeek String
 
-  time_entries Time_entry[]
+  timeSheetSegments TimeSheetSegment[]
 
   @@index([userId])
+}
+
+model TimeSheetSegment {
+  id          String @id @default(cuid())
+  projectName String
+  userId      String
+  currentWeek String
+
+  timeSheet   TimeSheet? @relation(fields: [timeSheetId], references: [id])
+  timeSheetId String?
+
+  workSegments WorkSegment[]
+
+  @@index([userId])
+}
+
+model WorkSegment {
+  id          String   @id @default(cuid())
+  projectId   String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  hoursWorked Float
+  date        String
+
+  timeSheetSegment   TimeSheetSegment? @relation(fields: [timeSheetSegmentId], references: [id], onDelete: Cascade)
+  timeSheetSegmentId String?
+
+  @@unique([timeSheetSegmentId, date])
 }

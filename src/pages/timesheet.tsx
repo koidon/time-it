@@ -22,6 +22,7 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
 import { round } from "~/utils/round-number";
+import ProjectChooserMenu from "~/Components/ProjectChooserMenu";
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -40,11 +41,10 @@ const weekDayFormat: Intl.DateTimeFormatOptions = {
   day: "numeric",
 };
 
-interface TimeEntry {
-  [key: string]: {
-    hours_worked: number;
-    id: string;
-  };
+interface WorkSegment {
+  id: string;
+  hoursWorked: number;
+  timeSheetSegmentId: string | null;
 }
 
 const Timesheet = () => {
@@ -52,50 +52,76 @@ const Timesheet = () => {
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
 
-  const { data: projectData, refetch: refetchData } =
-    api.timesheet.getAll.useQuery();
+  const { data: timeSheetSegment, refetch: refetchData } =
+    api.timeSheetSegment.getAll.useQuery();
 
-  const createProject = api.timesheet.projectCreate.useMutation({
-    onSuccess: () => {
-      void refetchData();
-    },
-  });
-
-  const deleteProject = api.timesheet.projectDelete.useMutation({
-    onSuccess: () => {
-      void refetchData();
-    },
-  });
-
-  const createTimeEntry = api.timeEntries.timeEntryCreate.useMutation({
-    onSuccess: () => {
-      void refetchData();
-    },
-    onError: () => {
-      toast.error("Time entry can't be bigger then 24 or less then 0.");
-    },
-  });
-
-  const deleteTimeEntry = api.timeEntries.timeEntryDelete.useMutation({
-    onSuccess: () => {
-      void refetchData();
-    },
-  });
-
-  const formattedData = projectData?.map(({ project, time_entries }) => {
-    const timeEntriesObj = time_entries.reduce(
-      (acc, { id, hours_worked, date }) => {
-        const formattedDate = new Date(date).toLocaleDateString("en-SE");
-        acc[formattedDate] = { hours_worked, id };
-        return acc;
+  const createWorkSegment = api.workSegmentRouter.workSegmentCreate.useMutation(
+    {
+      onSuccess: () => {
+        void refetchData();
       },
-      {} as TimeEntry
-    );
-    return {
-      project,
-      time_entries: timeEntriesObj,
-    };
-  });
+      onError: () => {
+        toast.error("Time entry can't be bigger then 24 or less then 0.");
+      },
+    }
+  );
+
+  const deleteWorkSegment = api.workSegmentRouter.workSegmentDelete.useMutation(
+    {
+      onSuccess: () => {
+        void refetchData();
+      },
+    }
+  );
+
+  const createTimeSheetSegment =
+    api.timeSheetSegment.timeSheetSegmentCreate.useMutation({
+      onSuccess: () => {
+        void refetchData();
+      },
+    });
+
+  const deleteTimeSheetSegment =
+    api.timeSheetSegment.timeSheetSegmentDelete.useMutation({
+      onSuccess: () => {
+        void refetchData();
+      },
+    });
+
+  const transformedObject = timeSheetSegment?.map(
+    ({ id, currentWeek, projectName, workSegments }) => {
+      const projectData: { [key: string]: WorkSegment } = workSegments.reduce(
+        (
+          projectResult: { [key: string]: WorkSegment },
+          { id, date, hoursWorked, timeSheetSegmentId }
+        ) => {
+          const formattedDate = new Date(date).toLocaleDateString("en-SE");
+
+          if (!projectResult[formattedDate]) {
+            projectResult[formattedDate] = {
+              id,
+              hoursWorked,
+              timeSheetSegmentId,
+            };
+          }
+
+          return projectResult;
+        },
+        {}
+      );
+
+      return {
+        id,
+        projectName,
+        currentWeek,
+        workSegments: projectData,
+      };
+    }
+  );
+
+  const filteredObj = transformedObject?.filter(
+    (project) => project.currentWeek === startDate.toLocaleDateString("en-SE")
+  );
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));
@@ -106,36 +132,40 @@ const Timesheet = () => {
   };
 
   const getValue = (index: number, date: Date) => {
-    const key = date.toLocaleDateString("en-SE");
-    return formattedData?.[index]?.time_entries?.[key]?.hours_worked ?? "";
+    const key = date?.toLocaleDateString("en-SE");
+
+    return filteredObj?.[index]?.workSegments[key]?.hoursWorked ?? "";
   };
 
   const setValue = (index: number, date: Date, value: string) => {
     const key = date.toLocaleDateString("en-SE");
-    value === ""
-      ? deleteTimeEntry.mutate({
-          date: key,
-          projectId: projectData?.[index]?.id ?? "",
-        })
-      : createTimeEntry.mutate({
-          hours_worked: round(parseFloat(value), 0.5),
-          date: key,
-          projectId: projectData?.[index]?.id ?? "",
-          id: formattedData?.[index]?.time_entries?.[key]?.id ?? "",
-        });
+    if (
+      value.length === 0 &&
+      filteredObj?.[index]?.workSegments[key]?.id !== undefined
+    )
+      deleteWorkSegment.mutate({
+        id: filteredObj?.[index]?.workSegments[key]?.id ?? "",
+      });
+
+    value.length !== 0 &&
+      createWorkSegment.mutate({
+        id: filteredObj?.[index]?.workSegments[key]?.id ?? "",
+        timeSheetSegmentId: filteredObj?.[index]?.id ?? "",
+        hoursWorked: round(parseFloat(value), 0.5),
+        date: key,
+      });
   };
 
-  const handleAddRow = () => {
-    createProject.mutate({
-      project: `Project ${
-        formattedData?.length ? formattedData.length + 1 : ""
-      }`,
+  const handleAddRow = (projectName: string) => {
+    createTimeSheetSegment.mutate({
+      projectName: projectName,
+      currentWeek: startDate.toLocaleDateString("en-SE"),
     });
   };
 
   const handleDeleteRow = (index: number) => {
-    deleteProject.mutate({
-      id: projectData?.[index]?.id ?? "",
+    deleteTimeSheetSegment.mutate({
+      id: filteredObj?.[index]?.id ?? "",
     });
   };
 
@@ -203,9 +233,9 @@ const Timesheet = () => {
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {formattedData?.map((item, index) => (
+                      {filteredObj?.map((item, index) => (
                         <Tr key={index}>
-                          <Td>{item.project}</Td>
+                          <Td>{item.projectName}</Td>
                           {weekDates.map((date) => (
                             <Td key={date.toISOString()}>
                               <Input
@@ -238,7 +268,11 @@ const Timesheet = () => {
                     </Tbody>
                   </Table>
                 </TableContainer>
-                <Button onClick={handleAddRow}>Add New Project</Button>
+                <ProjectChooserMenu
+                  onSelectProject={(project) =>
+                    handleAddRow(project.projectName)
+                  }
+                />
               </Box>
             </GridItem>
           )}
