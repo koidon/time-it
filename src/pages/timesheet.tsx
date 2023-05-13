@@ -15,6 +15,8 @@ import {
   Tr,
   Th,
   Td,
+  Flex,
+  Center,
 } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
@@ -209,18 +211,22 @@ const Timesheet = () => {
           </Show>
           {!!user.isSignedIn && (
             <GridItem area="main">
-              <Box paddingLeft={2}>
+              <Flex>
                 <Button onClick={handlePreviousWeek}>Previous Week</Button>
-                {` ${
-                  weekDates[0]?.toLocaleDateString("en-SE")
-                    ? weekDates[0]?.toLocaleDateString("en-SE")
-                    : ""
-                } - ${
-                  weekDates[6]?.toLocaleDateString("en-SE")
-                    ? weekDates[6]?.toLocaleDateString("en-SE")
-                    : ""
-                } `}
+                <Center>
+                  {` ${
+                    weekDates[0]?.toLocaleDateString("en-SE")
+                      ? weekDates[0]?.toLocaleDateString("en-SE")
+                      : ""
+                  } - ${
+                    weekDates[6]?.toLocaleDateString("en-SE")
+                      ? weekDates[6]?.toLocaleDateString("en-SE")
+                      : ""
+                  } `}
+                </Center>
                 <Button onClick={handleNextWeek}>Next Week</Button>
+              </Flex>
+              <Box w={[430, 800, 1200]} pl={2}>
                 <TableContainer>
                   <Table>
                     <Thead>

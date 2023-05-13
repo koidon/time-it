@@ -7,8 +7,21 @@ import calendarIcon from "/public/absenceIcon.png";
 import dashboardIcon from "/public/dashboardIcon.png";
 import reportsIcon from "/public/reportsIcon.png";
 import timesheetIcon from "/public/timesheetIcon.png";
+import projectsIcon from "/public/projectsIcon.png";
+import { useUser } from "@clerk/nextjs";
 
 const SideBar = () => {
+  interface PublicMetadata {
+    [key: string]: boolean;
+  }
+
+  interface User {
+    // Define other properties if needed
+    publicMetadata?: PublicMetadata;
+  }
+
+  const { user } = useUser() as { user?: User };
+
   const [navSize, setNavSize] = useState("large");
   return (
     <Flex
@@ -75,6 +88,15 @@ const SideBar = () => {
           route="/absence"
           alt="Absence icon"
         />
+        {user?.publicMetadata?.["isProjectLeader"] && (
+          <NavItem
+            navSize={navSize}
+            icon={projectsIcon}
+            title="Projects"
+            route="/projects"
+            alt="Absence icon"
+          />
+        )}
       </Flex>
     </Flex>
   );
