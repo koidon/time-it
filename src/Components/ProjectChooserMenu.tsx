@@ -1,10 +1,8 @@
 import React from "react";
 import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import { api } from "~/utils/api";
-import type { Employee } from ".prisma/client";
 
 interface Project {
-  employees: Employee[];
   id: string;
   projectName: string;
 }

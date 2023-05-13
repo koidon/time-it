@@ -226,7 +226,7 @@ const Timesheet = () => {
                 </Center>
                 <Button onClick={handleNextWeek}>Next Week</Button>
               </Flex>
-              <Box w={[430, 800, 1200]} pl={2}>
+              <Box w={[430, 800, 1300]} pl={2}>
                 <TableContainer>
                   <Table>
                     <Thead>
