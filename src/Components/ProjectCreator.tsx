@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import AsyncSelect from "react-select/async";
 import {
   Accordion,
   AccordionItem,
@@ -6,42 +7,91 @@ import {
   AccordionPanel,
   AccordionIcon,
   Box,
+  Input,
+  Button,
 } from "@chakra-ui/react";
+import type { User } from "@clerk/backend";
+import type { MultiValue } from "react-select";
+import { api } from "~/utils/api";
 
-const ProjectCreator = () => {
+interface Props {
+  users: User[];
+}
+
+interface Option {
+  label: string;
+  value: string;
+}
+
+interface Employee {
+  userId: string;
+}
+
+const ProjectCreator = ({ users }: Props) => {
+  const [input, setInput] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState<Employee[]>([]);
+
+  const createProject = api.project.projectCreate.useMutation();
+
+  const options = users?.map((user) => ({
+    label: user.username
+      ? user.username
+      : `${user.firstName ?? ""} ${user.lastName ?? ""}`,
+    value: user.id,
+  }));
+
+  const handleChange = (selectedOption: MultiValue<Option>) => {
+    const newArray = selectedOption.map(({ value: userId }) => ({
+      userId,
+    }));
+    setSelectedOptions(newArray);
+  };
+
+  const handleSubmit = () => {
+    createProject.mutate({
+      projectName: input,
+      employees: selectedOptions,
+    });
+  };
+
+  const loadOptions = (
+    searchValue: string,
+    callback: (options: Option[]) => void
+  ) => {
+    const filteredOptions = options?.filter((option) =>
+      option.label.toLowerCase().includes(searchValue.toLowerCase())
+    );
+    callback(filteredOptions);
+  };
+
   return (
     <Accordion>
       <AccordionItem>
         <h2>
           <AccordionButton>
             <Box as="span" flex="1" textAlign="left">
-              Section 1 title
+              Create Project
             </Box>
             <AccordionIcon />
           </AccordionButton>
         </h2>
-        <AccordionPanel pb={4}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </AccordionPanel>
-      </AccordionItem>
-
-      <AccordionItem>
-        <h2>
-          <AccordionButton>
-            <Box as="span" flex="1" textAlign="left">
-              Section 2 title
-            </Box>
-            <AccordionIcon />
-          </AccordionButton>
-        </h2>
-        <AccordionPanel pb={4}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
+        <AccordionPanel pb={4} h="auto">
+          <Box h="calc(100vh)">
+            <Input
+              placeholder="Enter name for new project"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+            <AsyncSelect
+              loadOptions={loadOptions}
+              defaultOptions
+              placeholder="Add employess to project"
+              isMulti
+              cacheOptions
+              onChange={handleChange}
+            />
+            <Button onClick={handleSubmit}>Submit</Button>
+          </Box>
         </AccordionPanel>
       </AccordionItem>
     </Accordion>

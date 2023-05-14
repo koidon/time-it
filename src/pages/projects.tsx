@@ -6,20 +6,25 @@ import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import ProjectCreator from "~/Components/ProjectCreator";
 import { useUser } from "@clerk/nextjs";
+import { api } from "~/utils/api";
 
 interface PublicMetadata {
   [key: string]: boolean;
 }
 
 interface User {
-  // Define other properties if needed
   publicMetadata?: PublicMetadata;
 }
 
 const Home: NextPage = () => {
   const { user } = useUser() as { user?: User };
+  if (!user?.publicMetadata?.["isProjectLeader"]) {
+    return <div>You are not authorized to access this page</div>;
+  }
+  const { data: users } = api.users.getAll.useQuery();
 
-  console.log(user);
+  if (!users) return <div>Something went wrong</div>;
+
   return (
     <>
       <Head>
@@ -44,7 +49,9 @@ const Home: NextPage = () => {
             </GridItem>
           </Show>
           <GridItem area="main">
-            {user?.publicMetadata?.["isProjectLeader"] && <ProjectCreator />}
+            {user?.publicMetadata?.["isProjectLeader"] && (
+              <ProjectCreator users={users} />
+            )}
           </GridItem>
         </Grid>
       </main>

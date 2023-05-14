@@ -5,8 +5,22 @@ import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import UsersList from "~/Components/UsersList";
+import { useUser } from "@clerk/nextjs";
+
+interface PublicMetadata {
+  [key: string]: boolean;
+}
+
+interface User {
+  publicMetadata?: PublicMetadata;
+}
 
 const Home: NextPage = () => {
+  const { user } = useUser() as { user?: User };
+  if (!user?.publicMetadata?.["isProjectLeader"]) {
+    return <div>You are not authorized to access this page</div>;
+  }
+
   return (
     <>
       <Head>
@@ -31,7 +45,7 @@ const Home: NextPage = () => {
             </GridItem>
           </Show>
           <GridItem area="main">
-            <UsersList />
+            {user?.publicMetadata?.["isAdmin"] && <UsersList />}
           </GridItem>
         </Grid>
       </main>

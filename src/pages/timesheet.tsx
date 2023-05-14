@@ -90,8 +90,6 @@ const Timesheet = () => {
       },
     });
 
-  console.log(user.user?.id);
-
   const transformedObject = timeSheetSegment?.map(
     ({ id, currentWeek, projectName, workSegments }) => {
       const projectData: { [key: string]: WorkSegment } = workSegments.reduce(
