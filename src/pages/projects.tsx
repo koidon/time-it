@@ -1,12 +1,14 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
-import { Grid, GridItem, Show } from "@chakra-ui/react";
+import { Accordion, Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import ProjectCreator from "~/Components/ProjectCreator";
 import { useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
+import React from "react";
+import EditProjects from "~/Components/EditProjects";
 
 interface PublicMetadata {
   [key: string]: boolean;
@@ -18,9 +20,6 @@ interface User {
 
 const Home: NextPage = () => {
   const { user } = useUser() as { user?: User };
-  if (!user?.publicMetadata?.["isProjectLeader"]) {
-    return <div>You are not authorized to access this page</div>;
-  }
   const { data: users } = api.users.getAll.useQuery();
 
   if (!users) return <div>Something went wrong</div>;
@@ -50,7 +49,10 @@ const Home: NextPage = () => {
           </Show>
           <GridItem area="main">
             {user?.publicMetadata?.["isProjectLeader"] && (
-              <ProjectCreator users={users} />
+              <Accordion>
+                <ProjectCreator users={users} />
+                <EditProjects />
+              </Accordion>
             )}
           </GridItem>
         </Grid>

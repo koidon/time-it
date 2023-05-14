@@ -12,7 +12,7 @@ interface Props {
 }
 
 const ProjectChooserMenu = ({ onSelectProject }: Props) => {
-  const { data: projectData } = api.project.getAll.useQuery();
+  const { data: projectData } = api.project.getAssignedProjects.useQuery();
 
   console.log(projectData);
 

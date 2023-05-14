@@ -2,7 +2,15 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 
 export const projectRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  getCreatedProjects: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.project.findMany({
+      where: {
+        creator: ctx.auth.userId,
+      },
+    });
+  }),
+
+  getAssignedProjects: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.project.findMany({
       where: {
         employees: {
@@ -33,6 +41,20 @@ export const projectRouter = createTRPCRouter({
           employees: {
             create: input.employees,
           },
+        },
+      });
+    }),
+
+  projectDelete: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.project.delete({
+        where: {
+          id: input.id,
         },
       });
     }),

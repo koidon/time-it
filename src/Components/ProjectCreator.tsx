@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import AsyncSelect from "react-select/async";
 import {
-  Accordion,
   AccordionItem,
   AccordionButton,
   AccordionPanel,
@@ -65,36 +64,35 @@ const ProjectCreator = ({ users }: Props) => {
   };
 
   return (
-    <Accordion>
-      <AccordionItem>
-        <h2>
-          <AccordionButton>
-            <Box as="span" flex="1" textAlign="left">
-              Create Project
-            </Box>
-            <AccordionIcon />
-          </AccordionButton>
-        </h2>
-        <AccordionPanel pb={4} h="auto">
-          <Box h="calc(100vh)">
-            <Input
-              placeholder="Enter name for new project"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-            <AsyncSelect
-              loadOptions={loadOptions}
-              defaultOptions
-              placeholder="Add employess to project"
-              isMulti
-              cacheOptions
-              onChange={handleChange}
-            />
-            <Button onClick={handleSubmit}>Submit</Button>
+    <AccordionItem>
+      <h2>
+        <AccordionButton>
+          <Box as="span" flex="1" textAlign="left">
+            Create Project
           </Box>
-        </AccordionPanel>
-      </AccordionItem>
-    </Accordion>
+          <AccordionIcon />
+        </AccordionButton>
+      </h2>
+      <AccordionPanel pb={4} h="auto">
+        <Input
+          placeholder="Enter name for new project"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <Box>
+          <AsyncSelect
+            menuPortalTarget={document.body}
+            loadOptions={loadOptions}
+            defaultOptions
+            placeholder="Add employess to project"
+            isMulti
+            cacheOptions
+            onChange={handleChange}
+          />
+          <Button onClick={handleSubmit}>Submit</Button>
+        </Box>
+      </AccordionPanel>
+    </AccordionItem>
   );
 };
 
