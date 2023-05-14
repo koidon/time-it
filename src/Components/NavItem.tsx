@@ -5,7 +5,7 @@ import Image, { type StaticImageData } from "next/image";
 import { useRouter } from "next/router";
 
 interface Props {
-  navSize: string;
+  navSize?: string;
   title: string;
   icon: StaticImageData;
   route: string;

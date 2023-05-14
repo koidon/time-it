@@ -10,16 +10,16 @@ import timesheetIcon from "/public/timesheetIcon.png";
 import projectsIcon from "/public/projectsIcon.png";
 import { useUser } from "@clerk/nextjs";
 
+interface PublicMetadata {
+  [key: string]: boolean;
+}
+
+interface User {
+  // Define other properties if needed
+  publicMetadata?: PublicMetadata;
+}
+
 const SideBar = () => {
-  interface PublicMetadata {
-    [key: string]: boolean;
-  }
-
-  interface User {
-    // Define other properties if needed
-    publicMetadata?: PublicMetadata;
-  }
-
   const { user } = useUser() as { user?: User };
 
   const [navSize, setNavSize] = useState("large");

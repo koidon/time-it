@@ -4,6 +4,8 @@ import Head from "next/head";
 import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
+import HamburgerMenu from "~/Components/HambugerMenu";
+import React from "react";
 
 const Home: NextPage = () => {
   return (
@@ -16,8 +18,10 @@ const Home: NextPage = () => {
       <main>
         <Grid
           templateAreas={{
-            base: `"nav" "main"`,
-            lg: `"nav nav" "aside main"`,
+            base: `"nav nav" 
+                   "hamburger main"`,
+            lg: `"nav nav" 
+                 "aside main"`,
           }}
           templateColumns={{ base: "1fr", lg: "200px 1fr" }}
         >
@@ -27,6 +31,11 @@ const Home: NextPage = () => {
           <Show above="lg">
             <GridItem area="aside">
               <SideBar />
+            </GridItem>
+          </Show>
+          <Show below="lg">
+            <GridItem area="hamburger">
+              <HamburgerMenu />
             </GridItem>
           </Show>
         </Grid>

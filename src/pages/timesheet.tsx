@@ -25,6 +25,7 @@ import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
 import { round } from "~/utils/round-number";
 import ProjectChooserMenu from "~/Components/ProjectChooserMenu";
+import HamburgerMenu from "~/Components/HambugerMenu";
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -192,8 +193,8 @@ const Timesheet = () => {
       <main>
         <Grid
           templateAreas={{
-            base: `"nav" 
-                   "main"`,
+            base: `"nav nav" 
+                   "hamburger main"`,
             lg: `"nav nav" 
                  "aside main"`,
           }}
@@ -205,6 +206,11 @@ const Timesheet = () => {
           <Show above="lg">
             <GridItem area="aside">
               <SideBar />
+            </GridItem>
+          </Show>
+          <Show below="lg">
+            <GridItem area="hamburger">
+              <HamburgerMenu />
             </GridItem>
           </Show>
           {!!user.isSignedIn && (
@@ -224,7 +230,7 @@ const Timesheet = () => {
                 </Center>
                 <Button onClick={handleNextWeek}>Next Week</Button>
               </Flex>
-              <Box w={[430, 800, 1300]} pl={2}>
+              <Box w={[300, 800, 1300]} pl={2}>
                 <TableContainer>
                   <Table>
                     <Thead>

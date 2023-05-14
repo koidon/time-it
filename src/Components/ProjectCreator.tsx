@@ -73,7 +73,7 @@ const ProjectCreator = ({ users }: Props) => {
           <AccordionIcon />
         </AccordionButton>
       </h2>
-      <AccordionPanel pb={4} h="auto">
+      <AccordionPanel>
         <Input
           placeholder="Enter name for new project"
           value={input}

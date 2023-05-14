@@ -1,7 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
-import { Accordion, Grid, GridItem, Show } from "@chakra-ui/react";
+import { Accordion, Box, Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import ProjectCreator from "~/Components/ProjectCreator";
@@ -9,6 +9,7 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import React from "react";
 import EditProjects from "~/Components/EditProjects";
+import HamburgerMenu from "~/Components/HambugerMenu";
 
 interface PublicMetadata {
   [key: string]: boolean;
@@ -34,8 +35,10 @@ const Home: NextPage = () => {
       <main>
         <Grid
           templateAreas={{
-            base: `"nav" "main"`,
-            lg: `"nav nav" "aside main"`,
+            base: `"nav nav" 
+                   "hamburger main"`,
+            lg: `"nav nav" 
+                 "aside main"`,
           }}
           templateColumns={{ base: "1fr", lg: "200px 1fr" }}
         >
@@ -47,12 +50,19 @@ const Home: NextPage = () => {
               <SideBar />
             </GridItem>
           </Show>
+          <Show below="lg">
+            <GridItem area="hamburger">
+              <HamburgerMenu />
+            </GridItem>
+          </Show>
           <GridItem area="main">
             {user?.publicMetadata?.["isProjectLeader"] && (
-              <Accordion>
-                <ProjectCreator users={users} />
-                <EditProjects />
-              </Accordion>
+              <Box w={[430, 800, 1300]} pl={2}>
+                <Accordion>
+                  <ProjectCreator users={users} />
+                  <EditProjects />
+                </Accordion>
+              </Box>
             )}
           </GridItem>
         </Grid>

@@ -6,6 +6,8 @@ import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import UsersList from "~/Components/UsersList";
 import { useUser } from "@clerk/nextjs";
+import HamburgerMenu from "~/Components/HambugerMenu";
+import React from "react";
 
 interface PublicMetadata {
   [key: string]: boolean;
@@ -31,8 +33,10 @@ const Home: NextPage = () => {
       <main>
         <Grid
           templateAreas={{
-            base: `"nav" "main"`,
-            lg: `"nav nav" "aside main"`,
+            base: `"nav nav" 
+                   "hamburger main"`,
+            lg: `"nav nav" 
+                 "aside main"`,
           }}
           templateColumns={{ base: "1fr", lg: "200px 1fr" }}
         >
@@ -42,6 +46,11 @@ const Home: NextPage = () => {
           <Show above="lg">
             <GridItem area="aside">
               <SideBar />
+            </GridItem>
+          </Show>
+          <Show below="lg">
+            <GridItem area="hamburger">
+              <HamburgerMenu />
             </GridItem>
           </Show>
           <GridItem area="main">
