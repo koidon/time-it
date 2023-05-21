@@ -7,6 +7,8 @@ await import("./src/env.mjs");
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
+  transpilePackages: ["@nivo"],
+  experimental: { esmExternals: "loose", },
   images: {
     domains: ["www.gravatar.com", "images.clerk.dev"],
   },

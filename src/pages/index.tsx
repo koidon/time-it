@@ -1,13 +1,17 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
-import { Grid, GridItem, Show } from "@chakra-ui/react";
+import { Grid, GridItem, Heading, Show, useMediaQuery } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import HamburgerMenu from "~/Components/HambugerMenu";
 import React from "react";
+import PieChart from "~/Components/PieChart";
+import BarChart from "~/Components/BarChart";
+import ActiveProjects from "~/Components/ActiveProjects";
 
 const Home: NextPage = () => {
+  const [isMobile] = useMediaQuery("(max-width: 768px)");
   return (
     <>
       <Head>
@@ -38,6 +42,66 @@ const Home: NextPage = () => {
               <HamburgerMenu />
             </GridItem>
           </Show>
+          <GridItem area="main">
+            <Grid
+              templateAreas={{
+                base: `"project" "pie" "bar"`,
+                lg: `"project pie pie" "bar bar bar"`,
+              }}
+              gridAutoColumns="minmax(0, 1fr)"
+              gap="50px"
+              m={10}
+            >
+              <GridItem
+                area="project"
+                height="28rem"
+                bg="#D2DFF3"
+                borderRadius="15px"
+              >
+                <Heading
+                  textAlign="center"
+                  font-family="Inter"
+                  fontWeight="400"
+                  fontSize="48px"
+                >
+                  My projects
+                </Heading>
+                <ActiveProjects />
+              </GridItem>
+              <GridItem
+                area="pie"
+                height="28rem"
+                bg="#D2DFF3"
+                borderRadius="15px"
+              >
+                <Heading
+                  textAlign="center"
+                  font-family="Inter"
+                  fontWeight="400"
+                  fontSize="48px"
+                >
+                  Top 5 projects
+                </Heading>
+                <PieChart />
+              </GridItem>
+              <GridItem
+                area="bar"
+                height="28rem"
+                bg="#D2DFF3"
+                borderRadius="15px"
+              >
+                <Heading
+                  textAlign="center"
+                  font-family="Inter"
+                  fontWeight="400"
+                  fontSize="40px"
+                >
+                  Hours worked
+                </Heading>
+                <BarChart layout={isMobile ? "horizontal" : "vertical"} />
+              </GridItem>
+            </Grid>
+          </GridItem>
         </Grid>
       </main>
     </>

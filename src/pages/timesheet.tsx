@@ -230,9 +230,9 @@ const Timesheet = () => {
                 </Center>
                 <Button onClick={handleNextWeek}>Next Week</Button>
               </Flex>
-              <Box w={[300, 800, 1300]} pl={2}>
+              <Box w={[375, 480, 768, 992, 1000, 1200]}>
                 <TableContainer>
-                  <Table>
+                  <Table size="sm" className="table-tiny">
                     <Thead>
                       <Tr>
                         <Th>Project</Th>
@@ -251,6 +251,7 @@ const Timesheet = () => {
                           {weekDates.map((date) => (
                             <Td key={date.toISOString()}>
                               <Input
+                                w={20}
                                 size="sm"
                                 type="number"
                                 defaultValue={getValue(index, date)}

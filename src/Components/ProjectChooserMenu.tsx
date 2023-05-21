@@ -14,8 +14,6 @@ interface Props {
 const ProjectChooserMenu = ({ onSelectProject }: Props) => {
   const { data: projectData } = api.project.getAssignedProjects.useQuery();
 
-  console.log(projectData);
-
   return (
     <Menu>
       <MenuButton as={Button}>Add new Project</MenuButton>
