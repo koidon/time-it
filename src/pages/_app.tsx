@@ -7,6 +7,7 @@ import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import theme from "~/utils/theme";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (

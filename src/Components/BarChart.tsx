@@ -68,7 +68,7 @@ const BarChart = ({ layout }: Props) => {
       indexBy="date"
       margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
       padding={0.3}
-      colors="#D9D9D9"
+      colors="#4472C4"
       borderColor={{
         from: "color",
         modifiers: [["darker", 1.6]],

@@ -78,12 +78,7 @@ const Home: NextPage = () => {
                   </Heading>
                   <ActiveProjects />
                 </GridItem>
-                <GridItem
-                  area="pie"
-                  height="28rem"
-                  bg="#D2DFF3"
-                  borderRadius="15px"
-                >
+                <GridItem area="pie" bg="#D2DFF3" borderRadius="15px">
                   <Heading
                     textAlign="center"
                     font-family="Inter"
@@ -92,14 +87,11 @@ const Home: NextPage = () => {
                   >
                     Top 5 projects
                   </Heading>
-                  <PieChart />
+                  <Box height="28rem">
+                    <PieChart />
+                  </Box>
                 </GridItem>
-                <GridItem
-                  area="bar"
-                  height="28rem"
-                  bg="#D2DFF3"
-                  borderRadius="15px"
-                >
+                <GridItem area="bar" bg="#D2DFF3" borderRadius="15px">
                   <Heading
                     textAlign="center"
                     font-family="Inter"
@@ -108,7 +100,9 @@ const Home: NextPage = () => {
                   >
                     Hours worked
                   </Heading>
-                  <BarChart layout={isMobile ? "horizontal" : "vertical"} />
+                  <Box height="28rem">
+                    <BarChart layout={isMobile ? "horizontal" : "vertical"} />
+                  </Box>
                 </GridItem>
               </Grid>
             ) : (
