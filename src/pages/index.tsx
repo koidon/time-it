@@ -70,7 +70,7 @@ const Home: NextPage = () => {
                 >
                   <Heading
                     textAlign="center"
-                    font-family="Inter"
+                    fontFamily="Inter"
                     fontWeight="400"
                     fontSize="48px"
                   >
@@ -81,7 +81,7 @@ const Home: NextPage = () => {
                 <GridItem area="pie" bg="#D2DFF3" borderRadius="15px">
                   <Heading
                     textAlign="center"
-                    font-family="Inter"
+                    fontFamily="Inter"
                     fontWeight="400"
                     fontSize="48px"
                   >
@@ -94,7 +94,7 @@ const Home: NextPage = () => {
                 <GridItem area="bar" bg="#D2DFF3" borderRadius="15px">
                   <Heading
                     textAlign="center"
-                    font-family="Inter"
+                    fontFamily="Inter"
                     fontWeight="400"
                     fontSize="40px"
                   >

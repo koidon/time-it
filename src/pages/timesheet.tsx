@@ -282,6 +282,7 @@ const Timesheet = () => {
                   </Table>
                 </TableContainer>
                 <ProjectChooserMenu
+                  buttonName="Add project"
                   onSelectProject={(project) =>
                     handleAddRow(project.projectName)
                   }

@@ -8,15 +8,16 @@ interface Project {
 }
 
 interface Props {
+  buttonName: string;
   onSelectProject: (project: Project) => void;
 }
 
-const ProjectChooserMenu = ({ onSelectProject }: Props) => {
+const ProjectChooserMenu = ({ onSelectProject, buttonName }: Props) => {
   const { data: projectData } = api.project.getAssignedProjects.useQuery();
 
   return (
     <Menu>
-      <MenuButton as={Button}>Add new Project</MenuButton>
+      <MenuButton as={Button}>{buttonName}</MenuButton>
       <MenuList>
         {projectData?.map((project) => (
           <MenuItem onClick={() => onSelectProject(project)} key={project.id}>

@@ -1,24 +1,91 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-
-import { Box, Grid, GridItem, Show } from "@chakra-ui/react";
+import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import HamburgerMenu from "~/Components/HambugerMenu";
-import React from "react";
-import dayjs from "dayjs";
-import {
-  Calendar,
-  type CalendarProps,
-  dayjsLocalizer,
-} from "react-big-calendar";
+import React, { useState, useEffect } from "react";
+import Calendar from "~/Components/Calendar";
+import { api } from "~/utils/api";
+import CalendarModal from "~/Components/CalendarModal";
+import { useDisclosure } from "@chakra-ui/hooks";
 
-import timezone from "dayjs/plugin/timezone";
-dayjs.extend(timezone);
+interface EventData {
+  start: Date;
+  end: Date;
+  title: string;
+}
 
-const djLocalizer = dayjsLocalizer(dayjs);
+const Home: NextPage = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { data: accessToken } = api.users.getAccessToken.useQuery();
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [displayModal, setDisplayModal] = useState<boolean>(false);
+  const [selectedEventHours, setSelectedEventHours] = useState<number>(0);
+  const [selectedEventDate, setSelectedEventDate] = useState<Date>(
+    new Date(2023, 23, 5)
+  );
+  const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
 
-const Home: NextPage = (props: Omit<CalendarProps, "localizer">) => {
+  const handleEventClick = (clickedEvent: EventData) => {
+    const diff = clickedEvent.end.getTime() - clickedEvent.start.getTime();
+    const hours = diff / (1000 * 60 * 60);
+    setSelectedEventHours(hours);
+    setSelectedEventDate(clickedEvent.start); // Update selectedEventDate
+
+    // Calculate the first date of the current week
+    const firstDayOfWeek = new Date(clickedEvent.start);
+    const currentDayOfWeek = clickedEvent.start.getDay();
+    const difference = currentDayOfWeek - 1; // Adjust the difference to Monday (1)
+    const firstDayOfWeekDate = clickedEvent.start.getDate() - difference;
+    firstDayOfWeek.setDate(firstDayOfWeekDate);
+    setCurrentWeek(firstDayOfWeek);
+
+    setDisplayModal(true);
+    onOpen();
+  };
+
+  useEffect(() => {
+    if (accessToken) {
+      const endpoint =
+        "https://graph.microsoft.com/v1.0/me/events?$select=subject,start,end";
+
+      fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${accessToken?.[0]?.token ?? ""}`,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response: Response) => response.json())
+        .then(
+          (data: {
+            value: {
+              start: { dateTime: string };
+              end: { dateTime: string };
+              subject: string;
+            }[];
+          }) => {
+            // Process the response data
+            const transformedData: EventData[] = data.value.map((event) => ({
+              start: new Date(event.start.dateTime),
+              end: new Date(event.end.dateTime),
+              title: event.subject,
+            }));
+
+            setEvents(transformedData);
+          }
+        )
+        .catch((error: Error) => {
+          // Handle any errors
+          console.error(error);
+        });
+    }
+  }, [accessToken]);
+
+  if (!accessToken) {
+    return <div>Loading</div>;
+  }
+
   return (
     <>
       <Head>
@@ -50,14 +117,16 @@ const Home: NextPage = (props: Omit<CalendarProps, "localizer">) => {
             </GridItem>
           </Show>
           <GridItem area="main">
-            <Box h="50rem">
-              <Calendar
-                {...props}
-                localizer={djLocalizer}
-                startAccessor="start"
-                endAccessor="end"
+            <Calendar events={events} onSelectEvent={handleEventClick} />
+            {displayModal && (
+              <CalendarModal
+                isOpen={isOpen}
+                onClose={onClose}
+                hours={selectedEventHours}
+                date={selectedEventDate}
+                currentWeek={currentWeek}
               />
-            </Box>
+            )}
           </GridItem>
         </Grid>
       </main>

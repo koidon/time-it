@@ -6,6 +6,12 @@ export const userRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({}) => {
     return await clerkClient.users.getUserList();
   }),
+  getAccessToken: protectedProcedure.query(async ({ ctx }) => {
+    return await clerkClient.users.getUserOauthAccessToken(
+      ctx.auth.userId,
+      "oauth_microsoft"
+    );
+  }),
   updateUserRole: protectedProcedure
     .input(
       z.object({
