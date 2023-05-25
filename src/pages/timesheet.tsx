@@ -16,6 +16,7 @@ import {
   Th,
   Td,
   Flex,
+  Text,
   Center,
 } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
@@ -27,6 +28,10 @@ import { round } from "~/utils/round-number";
 import ProjectChooserMenu from "~/Components/ProjectChooserMenu";
 import HamburgerMenu from "~/Components/HambugerMenu";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear";
+
+dayjs.extend(weekOfYear);
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -218,15 +223,8 @@ const Timesheet = () => {
             <GridItem area="main">
               <Flex>
                 <Center>
-                  {` ${
-                    weekDates[0]?.toLocaleDateString("en-SE")
-                      ? weekDates[0]?.toLocaleDateString("en-SE")
-                      : ""
-                  } - ${
-                    weekDates[6]?.toLocaleDateString("en-SE")
-                      ? weekDates[6]?.toLocaleDateString("en-SE")
-                      : ""
-                  } `}
+                  <Text>V. {dayjs(startDate).week()}</Text>
+                  <Text>{dayjs(startDate).format("MMMM YYYY")}</Text>
                 </Center>
                 <Button onClick={handlePreviousWeek}>
                   {<ArrowBackIcon />}

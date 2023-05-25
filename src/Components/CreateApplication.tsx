@@ -63,7 +63,7 @@ const CreateApplication = () => {
         </GridItem>
         <GridItem area="apply">
           <Flex alignItems="center" justifyContent="center">
-            <Button type="submit" w={200} background="#4472C4">
+            <Button type="submit" w={200} bg="#4472C4">
               Apply
             </Button>
           </Flex>
