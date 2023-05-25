@@ -9,6 +9,8 @@ import Calendar from "~/Components/Calendar";
 import { api } from "~/utils/api";
 import CalendarModal from "~/Components/CalendarModal";
 import { useDisclosure } from "@chakra-ui/hooks";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 interface EventData {
   start: Date;
@@ -19,7 +21,6 @@ interface EventData {
 const Home: NextPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { data: accessToken } = api.users.getAccessToken.useQuery();
-  const [events, setEvents] = useState<EventData[]>([]);
   const [displayModal, setDisplayModal] = useState<boolean>(false);
   const [selectedEventHours, setSelectedEventHours] = useState<number>(0);
   const [selectedEventDate, setSelectedEventDate] = useState<Date>(
@@ -45,45 +46,48 @@ const Home: NextPage = () => {
     onOpen();
   };
 
-  useEffect(() => {
-    if (accessToken) {
-      const endpoint =
-        "https://graph.microsoft.com/v1.0/me/events?$select=subject,start,end";
+  const {
+    data: events,
+    isLoading,
+    isError,
+  } = useQuery<EventData[], Error>(
+    ["events"],
+    async () => {
+      const response = await axios.get<{
+        value: {
+          start: { dateTime: string };
+          end: { dateTime: string };
+          subject: string;
+        }[];
+      }>(
+        "https://graph.microsoft.com/v1.0/me/events?$select=subject,start,end",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken?.[0]?.token ?? ""}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${accessToken?.[0]?.token ?? ""}`,
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response: Response) => response.json())
-        .then(
-          (data: {
-            value: {
-              start: { dateTime: string };
-              end: { dateTime: string };
-              subject: string;
-            }[];
-          }) => {
-            // Process the response data
-            const transformedData: EventData[] = data.value.map((event) => ({
-              start: new Date(event.start.dateTime),
-              end: new Date(event.end.dateTime),
-              title: event.subject,
-            }));
-
-            setEvents(transformedData);
-          }
-        )
-        .catch((error: Error) => {
-          // Handle any errors
-          console.error(error);
-        });
+      // Process the response data
+      return response.data.value.map((event) => ({
+        start: new Date(event.start.dateTime),
+        end: new Date(event.end.dateTime),
+        title: event.subject,
+      }));
+    },
+    {
+      enabled: !!accessToken,
+      retry: false,
     }
-  }, [accessToken]);
+  );
 
-  if (!accessToken) {
+  if (isLoading) {
     return <div>Loading</div>;
+  }
+
+  if (isError) {
+    return <div>Error occurred while fetching events</div>;
   }
 
   return (
@@ -117,7 +121,7 @@ const Home: NextPage = () => {
             </GridItem>
           </Show>
           <GridItem area="main">
-            <Calendar events={events} onSelectEvent={handleEventClick} />
+            <Calendar events={events ?? []} onSelectEvent={handleEventClick} />
             {displayModal && (
               <CalendarModal
                 isOpen={isOpen}
