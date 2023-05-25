@@ -4,7 +4,7 @@ import { Grid, GridItem, Show } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import HamburgerMenu from "~/Components/HambugerMenu";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Calendar from "~/Components/Calendar";
 import { api } from "~/utils/api";
 import CalendarModal from "~/Components/CalendarModal";

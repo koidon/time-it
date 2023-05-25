@@ -26,6 +26,7 @@ import { toast } from "react-hot-toast";
 import { round } from "~/utils/round-number";
 import ProjectChooserMenu from "~/Components/ProjectChooserMenu";
 import HamburgerMenu from "~/Components/HambugerMenu";
+import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 
 const dateOffset = (date: Date, offset: number) => {
   const newDate = new Date(date);
@@ -216,7 +217,6 @@ const Timesheet = () => {
           {!!user.isSignedIn && (
             <GridItem area="main">
               <Flex>
-                <Button onClick={handlePreviousWeek}>Previous Week</Button>
                 <Center>
                   {` ${
                     weekDates[0]?.toLocaleDateString("en-SE")
@@ -228,7 +228,10 @@ const Timesheet = () => {
                       : ""
                   } `}
                 </Center>
-                <Button onClick={handleNextWeek}>Next Week</Button>
+                <Button onClick={handlePreviousWeek}>
+                  {<ArrowBackIcon />}
+                </Button>
+                <Button onClick={handleNextWeek}>{<ArrowForwardIcon />}</Button>
               </Flex>
               <Box w={[375, 480, 768, 992, 1000, 1200]}>
                 <TableContainer>
