@@ -10,7 +10,7 @@ const config = {
   transpilePackages: ["@nivo"],
   experimental: { esmExternals: "loose", },
   images: {
-    domains: ["www.gravatar.com", "images.clerk.dev"],
+    domains: ["www.gravatar.com", "img.clerk.com"],
   },
 
   /**

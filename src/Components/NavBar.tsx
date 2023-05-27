@@ -28,7 +28,7 @@ const NavBar = () => {
         <Flex>
           <Center m={4}>
             <UserMenu
-              userProfilePicture={user.user.profileImageUrl}
+              userProfilePicture={user.user.imageUrl}
               username={
                 user.user.username ? user.user.username : user.user.fullName
               }

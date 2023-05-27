@@ -220,49 +220,109 @@ const Timesheet = () => {
             </GridItem>
           </Show>
           {!!user.isSignedIn && (
-            <GridItem area="main">
-              <Flex>
+            <GridItem area="main" ml={5}>
+              <Flex
+                justifyContent="space-between"
+                w={[375, 480, 768, 992, 1000, 1200]}
+              >
                 <Center>
-                  <Text>V. {dayjs(startDate).week()}</Text>
-                  <Text>{dayjs(startDate).format("MMMM YYYY")}</Text>
+                  <Text bg="#EDEDED" p={1} borderRadius={5} mr={5}>
+                    V. {dayjs(startDate).week()}
+                  </Text>
+                  <Text bg="#EDEDED" p={1} borderRadius={5}>
+                    {dayjs(startDate).format("MMMM YYYY")}
+                  </Text>
                 </Center>
-                <Button onClick={handlePreviousWeek}>
-                  {<ArrowBackIcon />}
-                </Button>
-                <Button onClick={handleNextWeek}>{<ArrowForwardIcon />}</Button>
+                <Box>
+                  <Button size="sm" mr={5} onClick={handlePreviousWeek}>
+                    {<ArrowBackIcon />}
+                  </Button>
+                  <Button size="sm" onClick={handleNextWeek}>
+                    {<ArrowForwardIcon />}
+                  </Button>
+                </Box>
               </Flex>
               <Box w={[375, 480, 768, 992, 1000, 1200]}>
-                <TableContainer>
-                  <Table size="sm" className="table-tiny">
+                <TableContainer borderRadius={5} mt={5}>
+                  <Table size="sm" className="table-tiny" bg="#F8F8F8">
                     <Thead>
                       <Tr>
-                        <Th>Project</Th>
+                        <Th borderRadius={5} p={4} bg="#A9C1EC">
+                          <Text textAlign="center" fontWeight="extrabold">
+                            PROJECT
+                          </Text>
+                        </Th>
                         {weekDates.map((day) => (
-                          <Th key={day.toISOString()}>
-                            {day.toLocaleDateString("en-SE", weekDayFormat)}
+                          <Th p={4} key={day.toISOString()}>
+                            {day
+                              .toLocaleDateString("en-SE", weekDayFormat)
+                              .includes("Sat") ||
+                            day
+                              .toLocaleDateString("en-SE", weekDayFormat)
+                              .includes("Sun") ? (
+                              <Text color="#FF5F5F">
+                                {day.toLocaleDateString("en-SE", weekDayFormat)}
+                              </Text>
+                            ) : (
+                              day.toLocaleDateString("en-SE", weekDayFormat)
+                            )}
                           </Th>
                         ))}
-                        <Th>Total</Th>
+                        <Th borderRadius={5} p={4} bg="#A9C1EC">
+                          <Text
+                            pl={5}
+                            pr={5}
+                            textAlign="center"
+                            fontWeight="extrabold"
+                          >
+                            TOTAL
+                          </Text>
+                        </Th>
                       </Tr>
                     </Thead>
                     <Tbody>
                       {filteredObj?.map((item, index) => (
                         <Tr key={index}>
                           <Td>{item.projectName}</Td>
-                          {weekDates.map((date) => (
-                            <Td key={date.toISOString()}>
-                              <Input
+                          {weekDates.map((date, index) =>
+                            index === 5 || index === 6 ? (
+                              <Td
+                                bg="rgba(241, 139, 139, 0.1)"
+                                key={date.toISOString()}
                                 w={20}
-                                size="sm"
-                                type="number"
-                                defaultValue={getValue(index, date)}
-                                onBlur={(e) =>
-                                  setValue(index, date, e.target.value)
-                                }
-                                disabled={isFutureStartDate}
-                              />
-                            </Td>
-                          ))}
+                              >
+                                <Input
+                                  bg="#FFFFFF"
+                                  borderRadius={5}
+                                  p={5}
+                                  w={20}
+                                  size="sm"
+                                  type="number"
+                                  defaultValue={getValue(index, date)}
+                                  onBlur={(e) =>
+                                    setValue(index, date, e.target.value)
+                                  }
+                                  disabled={isFutureStartDate}
+                                />
+                              </Td>
+                            ) : (
+                              <Td key={date.toISOString()}>
+                                <Input
+                                  bg="#FFFFFF"
+                                  borderRadius={5}
+                                  p={5}
+                                  w={20}
+                                  size="sm"
+                                  type="number"
+                                  defaultValue={getValue(index, date)}
+                                  onBlur={(e) =>
+                                    setValue(index, date, e.target.value)
+                                  }
+                                  disabled={isFutureStartDate}
+                                />
+                              </Td>
+                            )
+                          )}
                           <Td>{getTotal(index, weekDates)}</Td>
                           <Td>
                             <Button onClick={() => handleDeleteRow(index)}>

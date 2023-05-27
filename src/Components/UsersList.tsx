@@ -68,7 +68,7 @@ const UsersList = () => {
           <ListItem key={user.id} paddingY="15px">
             <HStack gap={5} alignItems="center">
               <Image
-                src={user.profileImageUrl}
+                src={user.imageUrl}
                 alt="Profile picture"
                 width={50}
                 height={50}
