@@ -18,10 +18,13 @@ import {
   Flex,
   Text,
   Center,
+  Tooltip,
+  HStack,
+  Heading,
 } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
 import { round } from "~/utils/round-number";
@@ -30,6 +33,8 @@ import HamburgerMenu from "~/Components/HambugerMenu";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
+import EditTimesheet from "~/Components/EditTimesheet";
+import EditTimeSheetSegment from "~/Components/EditTimeSheetSegment";
 
 dayjs.extend(weekOfYear);
 
@@ -57,9 +62,12 @@ interface WorkSegment {
 }
 
 const Timesheet = () => {
-  const user = useUser();
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
+  const [searchString, setSearchString] = useState("");
+  const [clearAllCounter, setClearAllCounter] = useState(0);
+
+  const ctx = api.useContext();
 
   const { data: timeSheetSegment, refetch: refetchData } =
     api.timeSheetSegment.getAll.useQuery();
@@ -83,6 +91,22 @@ const Timesheet = () => {
     }
   );
 
+  const deleteAllWorkSegments =
+    api.workSegmentRouter.workSegmentDeleteAll.useMutation({
+      onSuccess: () => {
+        void ctx.timeSheetSegment.getAll.invalidate();
+        window.location.reload();
+      },
+    });
+
+  const deleteWorkSegmentRow =
+    api.workSegmentRouter.workSegmentDeleteRow.useMutation({
+      onSuccess: () => {
+        void ctx.timeSheetSegment.getAll.invalidate();
+        window.location.reload();
+      },
+    });
+
   const createTimeSheetSegment =
     api.timeSheetSegment.timeSheetSegmentCreate.useMutation({
       onSuccess: () => {
@@ -94,6 +118,13 @@ const Timesheet = () => {
     api.timeSheetSegment.timeSheetSegmentDelete.useMutation({
       onSuccess: () => {
         void refetchData();
+      },
+    });
+
+  const deleteAllTimeSheetSegments =
+    api.timeSheetSegment.timeSheetSegmentDeleteAll.useMutation({
+      onSuccess: () => {
+        void ctx.timeSheetSegment.getAll.invalidate();
       },
     });
 
@@ -128,9 +159,22 @@ const Timesheet = () => {
     }
   );
 
-  const filteredObj = transformedObject?.filter(
-    (project) => project.currentWeek === startDate.toLocaleDateString("en-SE")
+  const filteredObj = transformedObject?.filter((project) =>
+    project.projectName.toLowerCase().includes(searchString.toLowerCase())
   );
+
+  // Add an extra object for the "Flex" project
+  const flexProject = {
+    id: "flex-id", // Assign a unique ID for the Flex project
+    projectName: "🕛 Flex",
+    currentWeek: startDate.toLocaleDateString("en-SE"),
+    workSegments: {},
+  };
+
+  // Add the flexProject to the filteredObj array
+  if (!filteredObj?.some((project) => project.projectName === "Flex")) {
+    filteredObj?.push(flexProject);
+  }
 
   const handlePreviousWeek = () => {
     setStartDate((currDate) => dateOffset(currDate, -7));
@@ -141,28 +185,37 @@ const Timesheet = () => {
   };
 
   const getValue = (index: number, date: Date) => {
-    const key = date?.toLocaleDateString("en-SE");
+    const key = date.toLocaleDateString("en-SE");
+    const workSegments = filteredObj?.[index]?.workSegments;
 
-    return filteredObj?.[index]?.workSegments[key]?.hoursWorked ?? "";
+    if (workSegments) {
+      return workSegments[key]?.hoursWorked ?? "";
+    }
+
+    return date >= startDate ? "" : "";
   };
 
   const setValue = (index: number, date: Date, value: string) => {
     const key = date.toLocaleDateString("en-SE");
-    if (
-      value.length === 0 &&
-      filteredObj?.[index]?.workSegments[key]?.id !== undefined
-    )
-      deleteWorkSegment.mutate({
-        id: filteredObj?.[index]?.workSegments[key]?.id ?? "",
-      });
+    const timeSheetSegmentId = filteredObj?.[index]?.id;
+    const workSegmentId = filteredObj?.[index]?.workSegments[key]?.id;
 
-    value.length !== 0 &&
+    if (value.length === 0) {
+      // Delete the work segment if the value is empty
+      if (workSegmentId !== undefined) {
+        deleteWorkSegment.mutate({
+          id: workSegmentId,
+        });
+      }
+    } else {
       createWorkSegment.mutate({
-        id: filteredObj?.[index]?.workSegments[key]?.id ?? "",
-        timeSheetSegmentId: filteredObj?.[index]?.id ?? "",
+        id: workSegmentId ?? "",
+        timeSheetSegmentId: timeSheetSegmentId ?? "",
         hoursWorked: round(parseFloat(value), 0.5),
         date: key,
+        week: dayjs(key).week().toString(),
       });
+    }
   };
 
   const handleAddRow = (projectName: string) => {
@@ -178,10 +231,39 @@ const Timesheet = () => {
     });
   };
 
+  const handleClearText = (timeSheetSegmentId: string) => {
+    deleteWorkSegmentRow.mutate({
+      timeSheetSegmentId: timeSheetSegmentId,
+    });
+  };
+
+  const handleDeleteAllRows = (currentWeek: string) => {
+    deleteAllTimeSheetSegments.mutate({
+      currentWeek: currentWeek,
+    });
+  };
+
+  const handleClearAllText = () => {
+    deleteAllWorkSegments.mutate({
+      week: dayjs(startDate).week().toString(),
+    });
+
+    setClearAllCounter((prevCounter) => prevCounter + 1);
+  };
+
   const getTotal = (index: number, dates: Date[]) => {
     return dates.reduce((total, date) => {
       const val = parseFloat(getValue(index, date).toString()) || 0;
       return total + val;
+    }, 0);
+  };
+
+  const getTimeSheetTotal = () => {
+    if (!filteredObj) return 0;
+
+    return filteredObj.reduce((total, item, index) => {
+      const projectTotal = getTotal(index, weekDates);
+      return total + projectTotal;
     }, 0);
   };
 
@@ -219,8 +301,13 @@ const Timesheet = () => {
               <HamburgerMenu />
             </GridItem>
           </Show>
-          {!!user.isSignedIn && (
-            <GridItem area="main" ml={5}>
+          <SignedIn>
+            <GridItem area="main" ml={5} justifySelf="center">
+              <Center>
+                <Heading size="lg" color="#0070AD">
+                  Timesheet
+                </Heading>
+              </Center>
               <Flex
                 justifyContent="space-between"
                 w={[375, 480, 768, 992, 1000, 1200]}
@@ -234,12 +321,16 @@ const Timesheet = () => {
                   </Text>
                 </Center>
                 <Box>
-                  <Button size="sm" mr={5} onClick={handlePreviousWeek}>
-                    {<ArrowBackIcon />}
-                  </Button>
-                  <Button size="sm" onClick={handleNextWeek}>
-                    {<ArrowForwardIcon />}
-                  </Button>
+                  <Tooltip hasArrow label="Previous week">
+                    <Button size="sm" mr={5} onClick={handlePreviousWeek}>
+                      {<ArrowBackIcon />}
+                    </Button>
+                  </Tooltip>
+                  <Tooltip hasArrow label="Next week">
+                    <Button size="sm" onClick={handleNextWeek}>
+                      {<ArrowForwardIcon />}
+                    </Button>
+                  </Tooltip>
                 </Box>
               </Flex>
               <Box w={[375, 480, 768, 992, 1000, 1200]}>
@@ -248,9 +339,18 @@ const Timesheet = () => {
                     <Thead>
                       <Tr>
                         <Th borderRadius={5} p={4} bg="#A9C1EC">
-                          <Text textAlign="center" fontWeight="extrabold">
-                            PROJECT
-                          </Text>
+                          <Tooltip
+                            hasArrow
+                            label="Projects that you have added to your timesheet for the current week"
+                          >
+                            <Text
+                              textAlign="center"
+                              color="#000000"
+                              fontSize="15px"
+                            >
+                              PROJECT
+                            </Text>
+                          </Tooltip>
                         </Th>
                         {weekDates.map((day) => (
                           <Th p={4} key={day.toISOString()}>
@@ -269,23 +369,44 @@ const Timesheet = () => {
                           </Th>
                         ))}
                         <Th borderRadius={5} p={4} bg="#A9C1EC">
-                          <Text
-                            pl={5}
-                            pr={5}
-                            textAlign="center"
-                            fontWeight="extrabold"
+                          <Tooltip
+                            hasArrow
+                            label="Total hours worked for the current week"
                           >
-                            TOTAL
-                          </Text>
+                            <Text
+                              pl={5}
+                              pr={5}
+                              textAlign="center"
+                              color="#000000"
+                              fontSize="15px"
+                            >
+                              TOTAL
+                            </Text>
+                          </Tooltip>
+                        </Th>
+                        <Th borderRadius={5} borderLeftRadius={0} ml={5}>
+                          <Box>
+                            <EditTimesheet
+                              buttonName="Edit All"
+                              menuDeleteName="Delete All Projects"
+                              menuClearName="Clear All Text"
+                              handleDeleteAllRows={() =>
+                                handleDeleteAllRows(
+                                  startDate.toLocaleDateString("en-SE")
+                                )
+                              }
+                              handleClearAllText={handleClearAllText}
+                            />
+                          </Box>
                         </Th>
                       </Tr>
                     </Thead>
                     <Tbody>
-                      {filteredObj?.map((item, index) => (
-                        <Tr key={index}>
+                      {filteredObj?.map((item, segmentIndex) => (
+                        <Tr key={segmentIndex}>
                           <Td>{item.projectName}</Td>
-                          {weekDates.map((date, index) =>
-                            index === 5 || index === 6 ? (
+                          {weekDates.map((date, dateIndex) =>
+                            dateIndex === 5 || dateIndex === 6 ? (
                               <Td
                                 bg="rgba(241, 139, 139, 0.1)"
                                 key={date.toISOString()}
@@ -298,11 +419,12 @@ const Timesheet = () => {
                                   w={20}
                                   size="sm"
                                   type="number"
-                                  defaultValue={getValue(index, date)}
+                                  defaultValue={getValue(segmentIndex, date)}
                                   onBlur={(e) =>
-                                    setValue(index, date, e.target.value)
+                                    setValue(segmentIndex, date, e.target.value)
                                   }
                                   disabled={isFutureStartDate}
+                                  key={`${segmentIndex}-${date.toISOString()}-${clearAllCounter}`}
                                 />
                               </Td>
                             ) : (
@@ -314,44 +436,83 @@ const Timesheet = () => {
                                   w={20}
                                   size="sm"
                                   type="number"
-                                  defaultValue={getValue(index, date)}
+                                  defaultValue={getValue(segmentIndex, date)}
                                   onBlur={(e) =>
-                                    setValue(index, date, e.target.value)
+                                    setValue(segmentIndex, date, e.target.value)
                                   }
                                   disabled={isFutureStartDate}
+                                  key={`${segmentIndex}-${date.toISOString()}-${clearAllCounter}`}
                                 />
                               </Td>
                             )
                           )}
-                          <Td>{getTotal(index, weekDates)}</Td>
                           <Td>
-                            <Button onClick={() => handleDeleteRow(index)}>
-                              Delete
-                            </Button>
+                            <Center>{getTotal(segmentIndex, weekDates)}</Center>
+                          </Td>
+                          <Td>
+                            <Center>
+                              <EditTimeSheetSegment
+                                menuDeleteName="Delete Project"
+                                menuClearName="Clear Text"
+                                handleDeleteRow={() =>
+                                  handleDeleteRow(segmentIndex)
+                                }
+                                handleClearText={() => handleClearText(item.id)}
+                              />
+                            </Center>
                           </Td>
                         </Tr>
                       ))}
-                      <Tr>
+                      {filteredObj && filteredObj?.length > 7 && (
+                        <Tr>
+                          <Td></Td>
+                          {weekDates.map((day) => (
+                            <Th key={day.toISOString()}>
+                              {day.toLocaleDateString("en-SE", weekDayFormat)}
+                            </Th>
+                          ))}
+                        </Tr>
+                      )}
+
+                      <Tr bg="#A9C1EC">
+                        <Td p={3}>
+                          <HStack>
+                            <ProjectChooserMenu
+                              buttonName="Add project"
+                              onSelectProject={(project) =>
+                                handleAddRow(project.projectName)
+                              }
+                            />
+                            <Input
+                              bg="#FFFFFF"
+                              placeholder="Search through added projects"
+                              value={searchString}
+                              onChange={(e) => setSearchString(e.target.value)}
+                            />
+                          </HStack>
+                        </Td>
+                        <Th colSpan={7}></Th>
+                        <Td>
+                          <Text
+                            borderRadius="20%"
+                            textAlign="center"
+                            p={3}
+                            bg="#FFFFFF"
+                          >
+                            {getTimeSheetTotal()}/40h
+                          </Text>
+                        </Td>
                         <Td></Td>
-                        {weekDates.map((day) => (
-                          <Th key={day.toISOString()}>
-                            {day.toLocaleDateString("en-SE", weekDayFormat)}
-                          </Th>
-                        ))}
                       </Tr>
                     </Tbody>
                   </Table>
                 </TableContainer>
-                <ProjectChooserMenu
-                  buttonName="Add project"
-                  onSelectProject={(project) =>
-                    handleAddRow(project.projectName)
-                  }
-                />
               </Box>
             </GridItem>
-          )}
-          {!user.isSignedIn && <h1>You must sign in</h1>}
+          </SignedIn>
+          <SignedOut>
+            <h1>You must sign in</h1>
+          </SignedOut>
         </Grid>
       </main>
     </>

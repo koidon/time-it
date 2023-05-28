@@ -55,6 +55,7 @@ model WorkSegment {
   updatedAt   DateTime @updatedAt
   hoursWorked Float
   date        String
+  week        String
 
   timeSheetSegment   TimeSheetSegment? @relation(fields: [timeSheetSegmentId], references: [id], onDelete: Cascade)
   timeSheetSegmentId String?

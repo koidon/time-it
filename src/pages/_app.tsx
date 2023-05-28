@@ -8,6 +8,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import theme from "~/utils/theme";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "@fontsource/inter/500.css";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (

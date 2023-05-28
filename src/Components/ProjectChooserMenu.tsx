@@ -1,6 +1,14 @@
 import React from "react";
-import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import {
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Tooltip,
+} from "@chakra-ui/react";
 import { api } from "~/utils/api";
+import { AddIcon } from "@chakra-ui/icons";
 
 interface Project {
   id: string;
@@ -17,7 +25,17 @@ const ProjectChooserMenu = ({ onSelectProject, buttonName }: Props) => {
 
   return (
     <Menu>
-      <MenuButton as={Button}>{buttonName}</MenuButton>
+      <Tooltip
+        hasArrow
+        label="Add a project to the timesheet for the current week."
+      >
+        <MenuButton
+          as={IconButton}
+          aria-label={buttonName}
+          icon={<AddIcon />}
+          borderRadius="50%"
+        />
+      </Tooltip>
       <MenuList>
         {projectData?.map((project) => (
           <MenuItem onClick={() => onSelectProject(project)} key={project.id}>

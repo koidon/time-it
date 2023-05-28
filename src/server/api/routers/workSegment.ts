@@ -9,6 +9,7 @@ export const workSegmentRouter = createTRPCRouter({
         timeSheetSegmentId: z.string(),
         hoursWorked: z.number().min(0).max(24),
         date: z.string(),
+        week: z.string(),
       })
     )
     .mutation(({ ctx, input }) => {
@@ -24,6 +25,7 @@ export const workSegmentRouter = createTRPCRouter({
           userId: ctx.auth.userId,
           hoursWorked: input.hoursWorked,
           date: input.date,
+          week: input.week,
         },
       });
     }),
@@ -38,6 +40,33 @@ export const workSegmentRouter = createTRPCRouter({
       return ctx.prisma.workSegment.delete({
         where: {
           id: input.id,
+        },
+      });
+    }),
+  workSegmentDeleteAll: protectedProcedure
+    .input(
+      z.object({
+        week: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.workSegment.deleteMany({
+        where: {
+          week: input.week,
+        },
+      });
+    }),
+
+  workSegmentDeleteRow: protectedProcedure
+    .input(
+      z.object({
+        timeSheetSegmentId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.workSegment.deleteMany({
+        where: {
+          timeSheetSegmentId: input.timeSheetSegmentId,
         },
       });
     }),

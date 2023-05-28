@@ -43,4 +43,17 @@ export const timeSheetSegmentRouter = createTRPCRouter({
         },
       });
     }),
+  timeSheetSegmentDeleteAll: protectedProcedure
+    .input(
+      z.object({
+        currentWeek: z.string(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.prisma.timeSheetSegment.deleteMany({
+        where: {
+          currentWeek: input.currentWeek,
+        },
+      });
+    }),
 });
