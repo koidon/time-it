@@ -62,3 +62,13 @@ model WorkSegment {
 
   @@unique([timeSheetSegmentId, date])
 }
+
+model FlexHours {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  flexHours Float
+  date      String
+  week      String
+}

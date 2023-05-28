@@ -35,6 +35,7 @@ import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import EditTimesheet from "~/Components/EditTimesheet";
 import EditTimeSheetSegment from "~/Components/EditTimeSheetSegment";
+import Corrections from "~/Components/Corrections";
 
 dayjs.extend(weekOfYear);
 
@@ -71,6 +72,10 @@ const Timesheet = () => {
 
   const { data: timeSheetSegment, refetch: refetchData } =
     api.timeSheetSegment.getAll.useQuery();
+
+  const { data: workSegments } = api.workSegmentRouter.getAll.useQuery();
+
+  const { data: flexHours } = api.workSegmentRouter.getAllFlexHours.useQuery();
 
   const createWorkSegment = api.workSegmentRouter.workSegmentCreate.useMutation(
     {
@@ -127,6 +132,18 @@ const Timesheet = () => {
         void ctx.timeSheetSegment.getAll.invalidate();
       },
     });
+
+  const createFlexHours = api.workSegmentRouter.flexHoursCreate.useMutation({
+    onSuccess: () => {
+      void ctx.workSegmentRouter.getAllFlexHours.invalidate();
+    },
+  });
+
+  const deleteFlexHours = api.workSegmentRouter.flexHoursDelete.useMutation({
+    onSuccess: () => {
+      void ctx.workSegmentRouter.getAllFlexHours.invalidate();
+    },
+  });
 
   const transformedObject = timeSheetSegment?.map(
     ({ id, currentWeek, projectName, workSegments }) => {
@@ -186,7 +203,13 @@ const Timesheet = () => {
 
   const getValue = (index: number, date: Date) => {
     const key = date.toLocaleDateString("en-SE");
+    const projectName = filteredObj?.[index]?.projectName;
     const workSegments = filteredObj?.[index]?.workSegments;
+
+    if (projectName === "🕛 Flex" && flexHours) {
+      const flexSegment = flexHours.find((segment) => segment.date === key);
+      return flexSegment?.flexHours ?? "";
+    }
 
     if (workSegments) {
       return workSegments[key]?.hoursWorked ?? "";
@@ -195,10 +218,34 @@ const Timesheet = () => {
     return date >= startDate ? "" : "";
   };
 
-  const setValue = (index: number, date: Date, value: string) => {
+  const setValue = (
+    index: number,
+    date: Date,
+    projectName: string,
+    value: string
+  ) => {
     const key = date.toLocaleDateString("en-SE");
     const timeSheetSegmentId = filteredObj?.[index]?.id;
     const workSegmentId = filteredObj?.[index]?.workSegments[key]?.id;
+    const currentFlex = flexHours?.find((segment) => segment.date === key);
+
+    if (projectName === "🕛 Flex") {
+      if (value.length === 0) {
+        if (currentFlex !== undefined) {
+          deleteFlexHours.mutate({
+            id: currentFlex?.id,
+          });
+        }
+      } else {
+        createFlexHours.mutate({
+          id: currentFlex?.id ?? "",
+          flexHours: round(parseFloat(value), 0.5),
+          date: key,
+          week: dayjs(key).week().toString(),
+        });
+      }
+      return;
+    }
 
     if (value.length === 0) {
       // Delete the work segment if the value is empty
@@ -258,18 +305,76 @@ const Timesheet = () => {
     }, 0);
   };
 
-  const getTimeSheetTotal = () => {
-    if (!filteredObj) return 0;
-
-    return filteredObj.reduce((total, item, index) => {
-      const projectTotal = getTotal(index, weekDates);
-      return total + projectTotal;
-    }, 0);
-  };
-
   const weekDates = Array.from({ length: 7 }, (_, i) =>
     dateOffset(startDate, i)
   );
+
+  const getTimeSheetTotal = () => {
+    if (!filteredObj) return { total: 0, excess: 0 };
+
+    let total = 0;
+    let excess = 0;
+
+    filteredObj.forEach((item, index) => {
+      if (item.projectName !== "🕛 Flex") {
+        const projectTotal = getTotal(index, weekDates);
+        const remaining = 40 - total;
+        if (projectTotal <= remaining) {
+          total += projectTotal;
+        } else {
+          total += remaining;
+          excess += projectTotal - remaining;
+        }
+      }
+    });
+
+    return { total, excess };
+  };
+
+  const result = getTimeSheetTotal();
+
+  const getExcessTotal = () => {
+    // Calculate total excess hours
+    let totalExcess = 0;
+
+    // Accumulate excess hours by week
+    const excessHoursByWeek: Record<string, number> = {};
+
+    // Group workSegments by week
+    const workSegmentsByWeek: Record<string, number[]> = {};
+    workSegments?.forEach((segment) => {
+      const { week, hoursWorked } = segment;
+      if (week in workSegmentsByWeek) {
+        workSegmentsByWeek?.[week]?.push(hoursWorked);
+      } else {
+        workSegmentsByWeek[week] = [hoursWorked];
+      }
+    });
+
+    // Calculate excess hours for each week
+    Object.entries(workSegmentsByWeek).forEach(([week, hoursWorkedArray]) => {
+      const totalHoursWorked = hoursWorkedArray.reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
+      const excessHours = totalHoursWorked > 40 ? totalHoursWorked - 40 : 0;
+      totalExcess += excessHours;
+      excessHoursByWeek[week] = excessHours;
+    });
+
+    return totalExcess; // Return the calculated total excess hours
+  };
+
+  console.log(getExcessTotal());
+
+  const calculateTotalFlex = () => {
+    let totalFlexHours = 0;
+    flexHours?.forEach((item) => {
+      totalFlexHours += item.flexHours;
+    });
+
+    return getExcessTotal() - totalFlexHours;
+  };
 
   return (
     <>
@@ -421,7 +526,12 @@ const Timesheet = () => {
                                   type="number"
                                   defaultValue={getValue(segmentIndex, date)}
                                   onBlur={(e) =>
-                                    setValue(segmentIndex, date, e.target.value)
+                                    setValue(
+                                      segmentIndex,
+                                      date,
+                                      item.projectName,
+                                      e.target.value
+                                    )
                                   }
                                   disabled={isFutureStartDate}
                                   key={`${segmentIndex}-${date.toISOString()}-${clearAllCounter}`}
@@ -438,7 +548,12 @@ const Timesheet = () => {
                                   type="number"
                                   defaultValue={getValue(segmentIndex, date)}
                                   onBlur={(e) =>
-                                    setValue(segmentIndex, date, e.target.value)
+                                    setValue(
+                                      segmentIndex,
+                                      date,
+                                      item.projectName,
+                                      e.target.value
+                                    )
                                   }
                                   disabled={isFutureStartDate}
                                   key={`${segmentIndex}-${date.toISOString()}-${clearAllCounter}`}
@@ -493,13 +608,25 @@ const Timesheet = () => {
                         </Td>
                         <Th colSpan={7}></Th>
                         <Td>
+                          <Box position="absolute">
+                            <Box
+                              bg="#95E616"
+                              display="inline-block"
+                              ml={20}
+                              pl={2}
+                              pr={2}
+                              borderRadius={4}
+                            >
+                              +{result.excess}
+                            </Box>
+                          </Box>
                           <Text
                             borderRadius="20%"
                             textAlign="center"
                             p={3}
                             bg="#FFFFFF"
                           >
-                            {getTimeSheetTotal()}/40h
+                            {result.total}/40h
                           </Text>
                         </Td>
                         <Td></Td>
@@ -507,6 +634,7 @@ const Timesheet = () => {
                     </Tbody>
                   </Table>
                 </TableContainer>
+                <Corrections flexHours={calculateTotalFlex()} />
               </Box>
             </GridItem>
           </SignedIn>
