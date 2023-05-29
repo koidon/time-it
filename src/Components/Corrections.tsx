@@ -27,6 +27,7 @@ const Corrections = (props: Props) => {
       mr={0}
       gap={10}
       templateColumns={{ base: "1fr", lg: "73% 10% 10%" }}
+      w={[375, 480, 768, 992, 1000, 1200]}
     >
       <GridItem area="comments">
         <Textarea h="100%" placeholder="Comments" borderRadius={10}></Textarea>

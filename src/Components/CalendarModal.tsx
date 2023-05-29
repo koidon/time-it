@@ -13,6 +13,7 @@ import ProjectChooserMenu from "~/Components/ProjectChooserMenu";
 import { api } from "~/utils/api";
 import { toast } from "react-hot-toast";
 import { round } from "~/utils/round-number";
+import dayjs from "dayjs";
 
 interface Props {
   hours: number;
@@ -68,6 +69,7 @@ const CalendarModal = ({
           timeSheetSegmentId: timeSheetSegmentId ?? "",
           hoursWorked: selectedWorkSegment.hoursWorked + round(hours, 0.5),
           date: key,
+          week: dayjs(key).week().toString(),
         });
       } else {
         const { id } = selectedTimeSheetSegment;
@@ -77,6 +79,7 @@ const CalendarModal = ({
           timeSheetSegmentId: id,
           hoursWorked: round(hours, 0.5),
           date: key,
+          week: dayjs(key).week().toString(),
         });
       }
     }
