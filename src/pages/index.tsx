@@ -16,10 +16,9 @@ import React from "react";
 import PieChart from "~/Components/PieChart";
 import BarChart from "~/Components/BarChart";
 import ActiveProjects from "~/Components/ActiveProjects";
-import { useUser } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 const Home: NextPage = () => {
-  const user = useUser();
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   return (
     <>
@@ -52,7 +51,7 @@ const Home: NextPage = () => {
             </GridItem>
           </Show>
           <GridItem area="main">
-            {!!user.isSignedIn ? (
+            <SignedIn>
               <Grid
                 templateAreas={{
                   base: `"project" "pie" "bar"`,
@@ -88,7 +87,7 @@ const Home: NextPage = () => {
                     Top 5 projects
                   </Heading>
                   <Box height="28rem">
-                    <PieChart />
+                    <PieChart hasLegends={!isMobile} />
                   </Box>
                 </GridItem>
                 <GridItem area="bar" bg="#D2DFF3" borderRadius="15px">
@@ -105,9 +104,10 @@ const Home: NextPage = () => {
                   </Box>
                 </GridItem>
               </Grid>
-            ) : (
+            </SignedIn>
+            <SignedOut>
               <Box>You must sign in</Box>
-            )}
+            </SignedOut>
           </GridItem>
         </Grid>
       </main>

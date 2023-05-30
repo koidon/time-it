@@ -19,6 +19,7 @@ const ProjectCustomizer = ({ onSelectColor }: Props) => {
       <MenuButton
         as={IconButton}
         aria-label="Options"
+        border="none"
         icon={<SlOptions />}
         variant="outline"
       />

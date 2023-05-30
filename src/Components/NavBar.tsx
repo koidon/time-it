@@ -3,6 +3,7 @@ import { Button, Center, Flex, HStack } from "@chakra-ui/react";
 import Image from "next/image";
 import UserMenu from "~/Components/UserMenu";
 import sogetiLogo from "/public/sogetiLogo.png";
+import Notifications from "~/Components/Notifications";
 
 const NavBar = () => {
   const user = useUser();
@@ -26,6 +27,9 @@ const NavBar = () => {
       )}
       {!!user.isSignedIn && (
         <Flex>
+          <Center m={4}>
+            <Notifications />
+          </Center>
           <Center m={4}>
             <UserMenu
               userProfilePicture={user.user.imageUrl}

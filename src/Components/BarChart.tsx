@@ -64,7 +64,7 @@ const BarChart = ({ layout }: Props) => {
       layout={layout}
       keys={["value"]}
       indexBy="date"
-      margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+      margin={{ top: 50, right: 50, bottom: 50, left: 100 }}
       padding={0.3}
       colors="#4472C4"
       borderColor={{
@@ -74,6 +74,11 @@ const BarChart = ({ layout }: Props) => {
       axisTop={null}
       axisRight={null}
       axisBottom={{
+        tickSize: 5,
+        tickPadding: 5,
+        tickRotation: 0,
+      }}
+      axisLeft={{
         tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,

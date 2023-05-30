@@ -42,12 +42,14 @@ const ActiveProjects = () => {
           mb={2}
           ml={2}
           mr={2}
-          h={8}
+          h={10}
         >
-          <Flex align="center" justify="space-between" h={8}>
-            <Text pl={2}>{project.projectName}</Text>
+          <Flex align="center" justify="space-between" h={10}>
+            <Text w="70%" pl={2}>
+              {project.projectName}
+            </Text>
             <Box>
-              <StarIcon mr={2} />
+              <StarIcon mr={2} h={10} />
               <ProjectCustomizer
                 onSelectColor={(color) =>
                   handleColorSelection(project.id, color)

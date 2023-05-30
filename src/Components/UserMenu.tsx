@@ -4,12 +4,12 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  Button,
-  Box,
-  Text,
   Link,
+  IconButton,
+  Wrap,
+  WrapItem,
+  Avatar,
 } from "@chakra-ui/react";
-import Image from "next/image";
 import ColorModeSwitch from "~/Components/ColorModeSwitch";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import NextLink from "next/link";
@@ -34,23 +34,23 @@ const UserMenu = ({ userProfilePicture, username }: Props) => {
   return (
     <Menu closeOnSelect={false}>
       <MenuButton
-        p={5}
-        as={Button}
-        size="lg"
-        rightIcon={
-          <Box pl={5}>
-            <Image
-              src={userProfilePicture}
-              alt="Profile picture"
-              width={50}
-              height={50}
-              style={{ borderRadius: 9999 }}
-            />
-          </Box>
+        w="100%"
+        as={IconButton}
+        size="xl"
+        variant=""
+        bg="none"
+        icon={
+          <Wrap>
+            <WrapItem>
+              <Avatar
+                size="md"
+                name={username ?? ""}
+                src={userProfilePicture}
+              ></Avatar>
+            </WrapItem>
+          </Wrap>
         }
-      >
-        <Text>{username}</Text>
-      </MenuButton>
+      />
       <MenuList>
         <MenuItem>My profile</MenuItem>
         <MenuItem>

@@ -19,7 +19,6 @@ import {
   Text,
   Center,
   Tooltip,
-  HStack,
   Heading,
 } from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
@@ -274,8 +273,6 @@ const Timesheet = () => {
       currentWeek: startDate.toLocaleDateString("en-SE"),
     });
   };
-
-  console.log(timeSheetSegment);
 
   const handleDeleteRow = (index: number) => {
     deleteTimeSheetSegment.mutate({
@@ -592,21 +589,20 @@ const Timesheet = () => {
 
                       <Tr bg="#A9C1EC">
                         <Td p={3}>
-                          <HStack>
-                            <ProjectChooserMenu
-                              buttonName="Add project"
-                              onSelectProject={(project) =>
-                                handleAddRow(project.projectName)
-                              }
-                              buttonType="iconButton"
-                            />
-                            <Input
-                              bg="#FFFFFF"
-                              placeholder="Search trough added projects"
-                              value={searchString}
-                              onChange={(e) => setSearchString(e.target.value)}
-                            />
-                          </HStack>
+                          <ProjectChooserMenu
+                            buttonName="Add project"
+                            onSelectProject={(project) =>
+                              handleAddRow(project.projectName)
+                            }
+                            buttonType="iconButton"
+                          />
+                          <Input
+                            ml={5}
+                            bg="#FFFFFF"
+                            placeholder="Search trough added projects"
+                            value={searchString}
+                            onChange={(e) => setSearchString(e.target.value)}
+                          />
                         </Td>
                         <Th colSpan={7}></Th>
                         <Td>
