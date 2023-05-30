@@ -66,7 +66,6 @@ const Timesheet = () => {
   const [startDate, setStartDate] = useState(getFirstDayOfWeek(new Date()));
   const isFutureStartDate = useMemo(() => startDate > new Date(), [startDate]);
   const [searchString, setSearchString] = useState("");
-  const [clearAllCounter, setClearAllCounter] = useState(0);
 
   const ctx = api.useContext();
 
@@ -80,7 +79,9 @@ const Timesheet = () => {
   const createWorkSegment = api.workSegmentRouter.workSegmentCreate.useMutation(
     {
       onSuccess: () => {
-        void refetchData();
+        void ctx.timeSheetSegment.getAll.invalidate();
+        void ctx.workSegmentRouter.getAll.invalidate();
+        void ctx.workSegmentRouter.getAllFlexHours.invalidate();
       },
       onError: () => {
         toast.error("Time entry can't be bigger then 24 or less then 0.");
@@ -91,7 +92,9 @@ const Timesheet = () => {
   const deleteWorkSegment = api.workSegmentRouter.workSegmentDelete.useMutation(
     {
       onSuccess: () => {
-        void refetchData();
+        void ctx.timeSheetSegment.getAll.invalidate();
+        void ctx.workSegmentRouter.getAll.invalidate();
+        void ctx.workSegmentRouter.getAllFlexHours.invalidate();
       },
     }
   );
@@ -100,7 +103,6 @@ const Timesheet = () => {
     api.workSegmentRouter.workSegmentDeleteAll.useMutation({
       onSuccess: () => {
         void ctx.timeSheetSegment.getAll.invalidate();
-        window.location.reload();
       },
     });
 
@@ -108,7 +110,6 @@ const Timesheet = () => {
     api.workSegmentRouter.workSegmentDeleteRow.useMutation({
       onSuccess: () => {
         void ctx.timeSheetSegment.getAll.invalidate();
-        window.location.reload();
       },
     });
 
@@ -176,8 +177,10 @@ const Timesheet = () => {
     }
   );
 
-  const filteredObj = transformedObject?.filter((project) =>
-    project.projectName.toLowerCase().includes(searchString.toLowerCase())
+  const filteredObj = transformedObject?.filter(
+    (project) =>
+      project.projectName.toLowerCase().includes(searchString.toLowerCase()) &&
+      project.currentWeek === startDate.toLocaleDateString("en-SE")
   );
 
   // Add an extra object for the "Flex" project
@@ -272,6 +275,8 @@ const Timesheet = () => {
     });
   };
 
+  console.log(timeSheetSegment);
+
   const handleDeleteRow = (index: number) => {
     deleteTimeSheetSegment.mutate({
       id: filteredObj?.[index]?.id ?? "",
@@ -294,8 +299,6 @@ const Timesheet = () => {
     deleteAllWorkSegments.mutate({
       week: dayjs(startDate).week().toString(),
     });
-
-    setClearAllCounter((prevCounter) => prevCounter + 1);
   };
 
   const getTotal = (index: number, dates: Date[]) => {
@@ -365,8 +368,6 @@ const Timesheet = () => {
     return totalExcess; // Return the calculated total excess hours
   };
 
-  console.log(getExcessTotal());
-
   const calculateTotalFlex = () => {
     let totalFlexHours = 0;
     flexHours?.forEach((item) => {
@@ -407,7 +408,7 @@ const Timesheet = () => {
             </GridItem>
           </Show>
           <SignedIn>
-            <GridItem area="main" ml={5} justifySelf="center">
+            <GridItem area="main" justifySelf="center">
               <Center>
                 <Heading size="lg" color="#0070AD">
                   Timesheet
@@ -534,7 +535,7 @@ const Timesheet = () => {
                                     )
                                   }
                                   disabled={isFutureStartDate}
-                                  key={`${segmentIndex}-${date.toISOString()}-${clearAllCounter}`}
+                                  key={getValue(segmentIndex, date)}
                                 />
                               </Td>
                             ) : (
@@ -556,7 +557,7 @@ const Timesheet = () => {
                                     )
                                   }
                                   disabled={isFutureStartDate}
-                                  key={`${segmentIndex}-${date.toISOString()}-${clearAllCounter}`}
+                                  key={getValue(segmentIndex, date)}
                                 />
                               </Td>
                             )
@@ -597,10 +598,11 @@ const Timesheet = () => {
                               onSelectProject={(project) =>
                                 handleAddRow(project.projectName)
                               }
+                              buttonType="iconButton"
                             />
                             <Input
                               bg="#FFFFFF"
-                              placeholder="Search through added projects"
+                              placeholder="Search trough added projects"
                               value={searchString}
                               onChange={(e) => setSearchString(e.target.value)}
                             />
@@ -608,26 +610,35 @@ const Timesheet = () => {
                         </Td>
                         <Th colSpan={7}></Th>
                         <Td>
-                          <Box position="absolute">
-                            <Box
-                              bg="#95E616"
-                              display="inline-block"
-                              ml={20}
-                              pl={2}
-                              pr={2}
-                              borderRadius={4}
+                          <Box position="relative">
+                            <Tooltip hasArrow label="Hours woked over 40">
+                              <Box
+                                position="absolute"
+                                bg="#95E616"
+                                display="inline-block"
+                                pl={2}
+                                pr={2}
+                                borderRadius={4}
+                                right={-5}
+                                zIndex={1}
+                              >
+                                +{result.excess}
+                              </Box>
+                            </Tooltip>
+                            <Tooltip
+                              hasArrow
+                              label="Total hours worked for the current week"
                             >
-                              +{result.excess}
-                            </Box>
+                              <Text
+                                borderRadius="20%"
+                                textAlign="center"
+                                p={3}
+                                bg="#FFFFFF"
+                              >
+                                {result.total}/40h
+                              </Text>
+                            </Tooltip>
                           </Box>
-                          <Text
-                            borderRadius="20%"
-                            textAlign="center"
-                            p={3}
-                            bg="#FFFFFF"
-                          >
-                            {result.total}/40h
-                          </Text>
                         </Td>
                         <Td></Td>
                       </Tr>

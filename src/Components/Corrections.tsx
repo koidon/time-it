@@ -7,6 +7,7 @@ import {
   Textarea,
   VStack,
   Text,
+  Tooltip,
 } from "@chakra-ui/react";
 
 interface Props {
@@ -17,28 +18,27 @@ const Corrections = (props: Props) => {
   return (
     <Grid
       templateAreas={{
-        base: `"comments" 
+        base: `"comments comments" 
                    "flex submit"`,
         lg: `"comments comments   flex" 
                  "comments comments  submit"`,
       }}
-      m={5}
-      ml={0}
-      mr={0}
+      mt={5}
       gap={10}
-      templateColumns={{ base: "1fr", lg: "73% 10% 10%" }}
-      w={[375, 480, 768, 992, 1000, 1200]}
+      templateColumns={{ lg: "73% 10%" }}
     >
       <GridItem area="comments">
         <Textarea h="100%" placeholder="Comments" borderRadius={10}></Textarea>
       </GridItem>
       <GridItem area="flex">
-        <Box bg="#A9C1EC" pb={30} textAlign="center" borderRadius={10}>
-          <VStack>
-            <Text>Flex balance</Text>
-            <Text>{props.flexHours}</Text>
-          </VStack>
-        </Box>
+        <Tooltip hasArrow label="The total amount of flex you can take out">
+          <Box bg="#A9C1EC" pb={30} textAlign="center" borderRadius={10}>
+            <VStack>
+              <Text>Flex balance</Text>
+              <Text>{props.flexHours}</Text>
+            </VStack>
+          </Box>
+        </Tooltip>
       </GridItem>
       <GridItem area="submit">
         <Button bg="#4472C4" color="#FFFFFF" w="100%">

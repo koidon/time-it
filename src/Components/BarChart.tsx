@@ -58,8 +58,6 @@ const BarChart = ({ layout }: Props) => {
   });
 
   // Display the results
-  console.log(results);
-
   return (
     <ResponsiveBar
       data={results}

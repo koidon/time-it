@@ -11,6 +11,7 @@ import CalendarModal from "~/Components/CalendarModal";
 import { useDisclosure } from "@chakra-ui/hooks";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
+import { Spinner } from "@chakra-ui/react";
 
 interface EventData {
   start: Date;
@@ -20,7 +21,9 @@ interface EventData {
 
 const Home: NextPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { data: accessToken } = api.users.getAccessToken.useQuery();
+
+  const { data: accessToken, isLoading: tokenIsLoading } =
+    api.users.getAccessToken.useQuery();
   const [displayModal, setDisplayModal] = useState<boolean>(false);
   const [selectedEventHours, setSelectedEventHours] = useState<number>(0);
   const [selectedEventDate, setSelectedEventDate] = useState<Date>(
@@ -46,11 +49,7 @@ const Home: NextPage = () => {
     onOpen();
   };
 
-  const {
-    data: events,
-    isLoading,
-    isError,
-  } = useQuery<EventData[], Error>(
+  const { data: events, isLoading } = useQuery<EventData[], Error>(
     ["events"],
     async () => {
       const response = await axios.get<{
@@ -77,18 +76,11 @@ const Home: NextPage = () => {
       }));
     },
     {
+      refetchInterval: 3000,
       enabled: !!accessToken,
       retry: false,
     }
   );
-
-  if (isLoading) {
-    return <div>Loading</div>;
-  }
-
-  if (isError) {
-    return <div>Error occurred while fetching events</div>;
-  }
 
   return (
     <>
@@ -121,6 +113,7 @@ const Home: NextPage = () => {
             </GridItem>
           </Show>
           <GridItem area="main">
+            {isLoading || (tokenIsLoading && <Spinner />)}
             <Calendar events={events ?? []} onSelectEvent={handleEventClick} />
             {displayModal && (
               <CalendarModal

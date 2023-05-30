@@ -100,6 +100,7 @@ const CalendarModal = ({
               onSelectProject={(project) =>
                 handleOnSelectProject(project.projectName)
               }
+              buttonType="button"
             />
           </ModalBody>
 

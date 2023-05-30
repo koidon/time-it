@@ -1,7 +1,14 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
-import { Accordion, Box, Grid, GridItem, Show } from "@chakra-ui/react";
+import {
+  Accordion,
+  Box,
+  Grid,
+  GridItem,
+  Show,
+  Spinner,
+} from "@chakra-ui/react";
 import NavBar from "~/Components/NavBar";
 import SideBar from "~/Components/SideBar";
 import ProjectCreator from "~/Components/ProjectCreator";
@@ -22,8 +29,6 @@ interface User {
 const Home: NextPage = () => {
   const { user } = useUser() as { user?: User };
   const { data: users } = api.users.getAll.useQuery();
-
-  if (!users) return <div>Something went wrong</div>;
 
   return (
     <>
@@ -56,13 +61,22 @@ const Home: NextPage = () => {
             </GridItem>
           </Show>
           <GridItem area="main">
-            {user?.publicMetadata?.["isProjectLeader"] && (
-              <Box w={[430, 800, 1300]} pl={2}>
-                <Accordion>
-                  <ProjectCreator users={users} />
-                  <EditProjects />
-                </Accordion>
-              </Box>
+            {!users ? (
+              <Spinner />
+            ) : (
+              user?.publicMetadata?.["isProjectLeader"] && (
+                <Box
+                  ml={100}
+                  mr={100}
+                  w={[375, 480, 768, 992, 1000, 1200]}
+                  pl={2}
+                >
+                  <Accordion>
+                    <ProjectCreator users={users} />
+                    <EditProjects />
+                  </Accordion>
+                </Box>
+              )
             )}
           </GridItem>
         </Grid>
